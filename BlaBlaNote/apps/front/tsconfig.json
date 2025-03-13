@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "allowJs": false,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "CommonJS",
+    "target": "ES6",
     "strict": true,
-    "types": ["vite/client", "vitest"]
+    "esModuleInterop": true,
+    "allowJs": false,
+    "resolveJsonModule": true
   },
-  "files": [],
-  "include": [],
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
   "references": [
     {
       "path": "./tsconfig.app.json"
