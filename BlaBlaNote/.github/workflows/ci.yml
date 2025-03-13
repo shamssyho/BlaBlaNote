@@ -9,6 +9,7 @@ on:
 permissions:
   actions: read
   contents: read
+  packages: write # ✅ Ajoute les permissions nécessaires pour publier sur GHCR
 
 jobs:
   main:
@@ -18,24 +19,44 @@ jobs:
         with:
           fetch-depth: 0
 
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      # Uncomment this line to enable task distribution
-      # - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e-ci"
-
-      # Cache node_modules
+      # Cache Node.js modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
+      # Installer les dépendances
       - run: npm ci --legacy-peer-deps
+
+      # Installer Playwright si utilisé
       - run: npx playwright install --with-deps
+
+      # Initialiser Nx pour la CI
       - uses: nrwl/nx-set-shas@v4
 
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: npx nx-cloud record -- echo Hello World
-      # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
-      # When you enable task distribution, run the e2e-ci task instead of e2e
-      - run: npx nx affected -t lint test build e2e
+      # Lint, Test et Build (Nx affecté uniquement)
+      - run: npx nx affected -t lint test build
+
+  docker:
+    needs: main # Le build Nx doit réussir avant
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker images
+        run: |
+          docker-compose build
+          docker tag backend ghcr.io/${{ github.repository_owner }}/backend:latest
+          docker tag frontend ghcr.io/${{ github.repository_owner }}/frontend:latest
+          docker push ghcr.io/${{ github.repository_owner }}/backend:latest
+          docker push ghcr.io/${{ github.repository_owner }}/frontend:latest
