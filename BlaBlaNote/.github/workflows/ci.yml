@@ -9,7 +9,7 @@ on:
 permissions:
   actions: read
   contents: read
-  packages: write # ✅ Ajoute les permissions nécessaires pour publier sur GHCR
+  packages: write
 
 jobs:
   main:
@@ -19,29 +19,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Cache Node.js modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # Installer les dépendances
       - run: npm ci --legacy-peer-deps
 
-      # Installer Playwright si utilisé
       - run: npx playwright install --with-deps
 
-      # Initialiser Nx pour la CI
       - uses: nrwl/nx-set-shas@v4
 
-      # Lint, Test et Build (Nx affecté uniquement)
       - run: npx nx affected -t lint test build
 
   docker:
-    needs: main # Le build Nx doit réussir avant
+    needs: main
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
