@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  SetMetadata,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -18,6 +19,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -72,5 +74,19 @@ export class UserController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   deleteUser(@Param('id') id: string) {
     return this.userService.deleteUser(id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @SetMetadata('roles', ['ADMIN'])
+  @Put(':id/role')
+  @ApiOperation({ summary: 'Update user role (Admin only)' })
+  @ApiResponse({ status: 200, description: 'User role updated' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  updateUserRole(
+    @Param('id') id: string,
+    @Body() body: { role: 'ADMIN' | 'USER' }
+  ) {
+    return this.userService.updateUserRole(id, body.role);
   }
 }
