@@ -44,6 +44,12 @@ export class UserService {
     if (dto.password) dto.password = await bcrypt.hash(dto.password, 10);
     return this.prisma.user.update({ where: { id }, data: dto });
   }
+  async updateUserRole(id: string, role: 'ADMIN' | 'USER') {
+    return this.prisma.user.update({
+      where: { id },
+      data: { role },
+    });
+  }
 
   async deleteUser(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
