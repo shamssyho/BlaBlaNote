@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   SetMetadata,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -83,10 +84,7 @@ export class UserController {
   @ApiOperation({ summary: 'Update user role (Admin only)' })
   @ApiResponse({ status: 200, description: 'User role updated' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  updateUserRole(
-    @Param('id') id: string,
-    @Body() body: { role: 'ADMIN' | 'USER' }
-  ) {
-    return this.userService.updateUserRole(id, body.role);
+  updateUserRole(@Param('id') id: string, @Query('role') role: string) {
+    return this.userService.updateUserRole(id, role as 'ADMIN' | 'USER');
   }
 }
