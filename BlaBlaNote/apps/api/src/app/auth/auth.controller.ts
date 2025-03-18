@@ -12,12 +12,11 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  @ApiOperation({ summary: 'Login user' })
-  @ApiResponse({ status: 200, description: 'User successfully logged in' })
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() body: { email: string; password: string }) {
-    const user = await this.authService.validateUser(body.email, body.password);
-    return this.authService.login(user);
+    return this.authService.login(body.email, body.password);
   }
 
   @Post('register')
