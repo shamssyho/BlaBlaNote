@@ -15,8 +15,12 @@ datasource db {
 
 model Note {
   id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   text      String
+  audioUrl  String? // URL du fichier audio
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
@@ -28,6 +32,7 @@ model User {
   role      Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Note      Note[]
 }
 
 enum Role {
