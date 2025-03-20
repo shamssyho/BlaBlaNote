@@ -18,7 +18,7 @@ model Note {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   text      String
-  audioUrl  String? // URL du fichier audio
+  audioUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
