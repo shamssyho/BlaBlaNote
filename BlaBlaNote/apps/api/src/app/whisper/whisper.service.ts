@@ -11,12 +11,10 @@ export class WhisperService {
       throw new Error('❌ OpenAI API Key is missing in environment variables.');
     }
 
-    // Vérifie que le fichier existe
     if (!fs.existsSync(filePath)) {
       throw new Error(`❌ Le fichier ${filePath} n'existe pas.`);
     }
 
-    // 🔥 Nouvelle correction : Récupérer l'extension correctement
     const fileExtension = filePath.split('.').pop()?.toLowerCase();
     const allowedFormats = [
       'flac',
