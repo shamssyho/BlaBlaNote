@@ -1,42 +1,26 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { NoteService } from './note.service';
 import { CreateNoteDto } from './dto/create-note.dto';
-import { UpdateNoteDto } from './dto/update-note.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller('note')
 export class NoteController {
   constructor(private readonly noteService: NoteService) {}
 
-  @Post()
-  create(@Body() createNoteDto: CreateNoteDto) {
-    return this.noteService.create(createNoteDto);
-  }
-
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.noteService.findAll();
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get notes of logged-in user' })
+  getMyNotes(@Req() req: any) {
+    return this.noteService.getNotesByUser(req.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.noteService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateNoteDto: UpdateNoteDto) {
-    return this.noteService.update(+id, updateNoteDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.noteService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a note for the logged-in user' })
+  createNote(@Req() req: any, @Body() dto: CreateNoteDto) {
+    return this.noteService.createNote(dto, req.user.id);
   }
 }
