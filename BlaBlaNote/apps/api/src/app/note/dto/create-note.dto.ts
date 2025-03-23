@@ -1,1 +1,4 @@
-export class CreateNoteDto {}
+export class CreateNoteDto {
+  text: string;
+  audioUrl?: string;
+}

@@ -4,6 +4,9 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { WhisperService } from './whisper.service';
 import { WhisperController } from './whisper.controller';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { WhisperController } from './whisper.controller';
         },
       }),
     }),
+    PrismaModule,
+    AuthModule,
+    JwtModule.register({ secret: process.env.JWT_SECRET }),
   ],
   controllers: [WhisperController],
   providers: [WhisperService],
