@@ -37,8 +37,6 @@ export class WhisperController {
           const uniqueSuffix = `${Date.now()}-${Math.round(
             Math.random() * 1e9
           )}`;
-          console.log('USER PAYLOAD:', req.user);
-
           const ext = path.extname(file.originalname);
           cb(null, `${uniqueSuffix}${ext}`);
         },
@@ -65,8 +63,6 @@ export class WhisperController {
     @Req() req: Request
   ) {
     const userId = req.user['sub'];
-    console.log('USER PAYLOAD:', req.user);
-
     return this.whisperService.transcribeAudio(file.path, userId);
   }
 }
