@@ -1,50 +1,41 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import axios from 'axios';
 import * as fs from 'fs';
 import FormData = require('form-data');
+import * as path from 'path';
+
+const SUPPORTED_FORMATS = [
+  '.flac',
+  '.m4a',
+  '.mp3',
+  '.mp4',
+  '.mpeg',
+  '.mpga',
+  '.oga',
+  '.ogg',
+  '.wav',
+  '.webm',
+];
 
 @Injectable()
 export class WhisperService {
-  async transcribeAudio(filePath: string) {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    if (!OPENAI_API_KEY) {
-      throw new Error('❌ OpenAI API Key is missing in environment variables.');
-    }
+  constructor(private readonly prisma: PrismaService) {}
 
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`❌ Le fichier ${filePath} n'existe pas.`);
-    }
-
-    const fileExtension = filePath.split('.').pop()?.toLowerCase();
-    const allowedFormats = [
-      'flac',
-      'm4a',
-      'mp3',
-      'mp4',
-      'mpeg',
-      'mpga',
-      'oga',
-      'ogg',
-      'wav',
-      'webm',
-    ];
-
-    if (!fileExtension || !allowedFormats.includes(fileExtension)) {
+  async transcribeAudio(filePath: string, userId: string) {
+    const ext = path.extname(filePath).toLowerCase();
+    if (!SUPPORTED_FORMATS.includes(ext)) {
       throw new Error(
-        `❌ Format de fichier non supporté (${fileExtension}). Formats acceptés: ${allowedFormats.join(
+        `❌ Format de fichier non supporté (${filePath}). Formats acceptés: ${SUPPORTED_FORMATS.join(
           ', '
         )}`
       );
     }
 
     const fileStream = fs.createReadStream(filePath);
-
     const formData = new FormData();
-    formData.append('file', fileStream, { filename: `audio.${fileExtension}` });
+    formData.append('file', fileStream, path.basename(filePath));
     formData.append('model', 'whisper-1');
-    formData.append('language', 'fr');
-    formData.append('temperature', '0.2');
-    formData.append('response_format', 'text');
 
     try {
       const response = await axios.post(
@@ -52,13 +43,22 @@ export class WhisperService {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
             ...formData.getHeaders(),
           },
         }
       );
 
-      return response.data;
+      const transcript = response.data.text;
+      await this.prisma.note.create({
+        data: {
+          userId,
+          text: transcript,
+          audioUrl: filePath,
+        },
+      });
+
+      return { success: true, transcript };
     } catch (error) {
       console.error(
         '❌ Erreur Whisper API:',
