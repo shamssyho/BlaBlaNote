@@ -1,14 +1,25 @@
 import {
   Controller,
   Post,
-  UploadedFile,
+  UseGuards,
   UseInterceptors,
+  UploadedFile,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { WhisperService } from './whisper.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Express } from 'express';
-import { Multer } from 'multer';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Request } from 'express';
+import * as path from 'path';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('Whisper')
 @Controller('whisper')
@@ -16,14 +27,46 @@ export class WhisperController {
   constructor(private readonly whisperService: WhisperService) {}
 
   @Post('transcribe')
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ summary: 'Transcribe an audio file to text' })
-  @ApiResponse({ status: 200, description: 'Transcription successful' })
-  @ApiResponse({ status: 400, description: 'Invalid file' })
-  async transcribe(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new Error('❌ Aucun fichier reçu.');
-    }
-    return this.whisperService.transcribeAudio(file.path);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = `${Date.now()}-${Math.round(
+            Math.random() * 1e9
+          )}`;
+          console.log('USER PAYLOAD:', req.user);
+
+          const ext = path.extname(file.originalname);
+          cb(null, `${uniqueSuffix}${ext}`);
+        },
+      }),
+    })
+  )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Transcrire un fichier audio' })
+  @ApiResponse({ status: 200, description: 'Transcription réussie' })
+  @ApiResponse({ status: 400, description: 'Fichier invalide' })
+  async transcribe(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request
+  ) {
+    const userId = req.user['sub'];
+    console.log('USER PAYLOAD:', req.user);
+
+    return this.whisperService.transcribeAudio(file.path, userId);
   }
 }
