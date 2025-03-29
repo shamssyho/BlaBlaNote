@@ -2,15 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
+import { Twilio } from 'twilio';
 
 @Injectable()
 export class NoteService {
-  private apiInstance: SibApiV3Sdk.TransactionalEmailsApi;
+  private readonly client: Twilio;
 
   constructor(private readonly prisma: PrismaService) {
     const defaultClient = SibApiV3Sdk.ApiClient.instance;
     const apiKey = defaultClient.authentications['api-key'];
     apiKey.apiKey = process.env.BREVO_API_KEY;
+
+    this.client = new Twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN
+    );
   }
 
   async getNotesByUser(userId: string) {
@@ -34,15 +40,12 @@ export class NoteService {
     if (!note) throw new NotFoundException('Note not found');
 
     const body = `
-    🔹 Summary:
-    ${note.summary}
-    
-    📝 Full Transcription:
-    ${note.text}
-    `;
-    if (!body) {
-      throw new NotFoundException(`${type} not available for this note`);
-    }
+🔹 Summary:
+${note.summary || 'Not available'}
+
+📝 Full Transcription:
+${note.text || 'Not available'}
+    `.trim();
 
     if (method === 'email') {
       const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
@@ -58,7 +61,13 @@ export class NoteService {
     }
 
     if (method === 'whatsapp') {
-      return { success: true, method: 'whatsapp', to, message: body };
+      await this.client.messages.create({
+        body,
+        from: process.env.TWILIO_WHATSAPP_NUMBER,
+        to: `whatsapp:${to}`,
+      });
+
+      return { success: true, method: 'whatsapp', to };
     }
 
     return { success: false, message: 'Unsupported method' };
