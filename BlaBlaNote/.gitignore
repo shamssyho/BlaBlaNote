@@ -45,7 +45,11 @@ vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 6ca10b0 (add note summary and)
+=======
+
+>>>>>>> ab5a5ef49f884d3841ea86d39547dc992b328da3
 /uploads/*
