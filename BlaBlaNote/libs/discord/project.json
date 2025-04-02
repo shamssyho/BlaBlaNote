@@ -1,0 +1,9 @@
+{
+  "name": "discord",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/discord/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project discord --web",
+  "targets": {}
+}
