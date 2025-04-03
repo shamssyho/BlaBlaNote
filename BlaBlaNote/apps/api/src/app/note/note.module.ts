@@ -3,9 +3,10 @@ import { NoteService } from './note.service';
 import { NoteController } from './note.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
+import { DiscordModule } from '../discord/discord.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, DiscordModule],
   controllers: [NoteController],
   providers: [NoteService],
 })

@@ -7,6 +7,7 @@ import { WhisperController } from './whisper.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { DiscordModule } from '../discord/discord.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { JwtModule } from '@nestjs/jwt';
     PrismaModule,
     AuthModule,
     JwtModule.register({ secret: process.env.JWT_SECRET }),
+    DiscordModule,
   ],
   controllers: [WhisperController],
   providers: [WhisperService],

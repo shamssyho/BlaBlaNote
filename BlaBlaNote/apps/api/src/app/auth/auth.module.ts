@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { DiscordModule } from '../discord/discord.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PrismaModule } from '../prisma/prisma.module';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
+    DiscordModule,
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

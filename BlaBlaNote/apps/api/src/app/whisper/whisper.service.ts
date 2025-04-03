@@ -4,6 +4,7 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import FormData = require('form-data');
+import { DiscordService } from '../discord/discord.service';
 
 const SUPPORTED_FORMATS = [
   '.flac',
@@ -20,7 +21,10 @@ const SUPPORTED_FORMATS = [
 
 @Injectable()
 export class WhisperService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly discord: DiscordService
+  ) {}
 
   async transcribeAudio(filePath: string, userId: string) {
     const ext = path.extname(filePath).toLowerCase();
@@ -110,6 +114,14 @@ export class WhisperService {
           translation,
           audioUrl: filePath,
         },
+      });
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+      await this.discord.sendWebhook({
+        username: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        action: 'Transcription',
+        date: new Date().toISOString(),
       });
 
       return {
