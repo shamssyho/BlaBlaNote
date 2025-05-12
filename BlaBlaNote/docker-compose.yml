@@ -5,11 +5,12 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: backend
     ports:
-      - '3000:3000'
+      - '3001:3001'
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -27,10 +28,19 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: blabla_note_db
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $POSTGRES_USER']
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data:
