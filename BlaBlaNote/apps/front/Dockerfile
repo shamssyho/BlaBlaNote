@@ -11,5 +11,5 @@ RUN npx nx build front
 
 FROM nginx:alpine
 COPY --from=builder /app/dist/apps/front /usr/share/nginx/html
-EXPOSE 4200
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
