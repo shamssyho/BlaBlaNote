@@ -19,7 +19,8 @@
     "@prisma/client": "^6.5.0",
     "antd": "^5.25.1",
     "axios": "^1.8.4",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "form-data": "^4.0.2",
@@ -49,8 +50,8 @@
     "@nx/nest": "20.6.0",
     "@nx/node": "20.5.0",
     "@nx/playwright": "20.5.0",
-    "@nx/react": "20.5.0",
-    "@nx/vite": "20.5.0",
+    "@nx/react": "^21.1.1",
+    "@nx/vite": "^21.1.1",
     "@nx/web": "20.5.0",
     "@nx/webpack": "20.5.0",
     "@nx/workspace": "20.5.0",
@@ -62,14 +63,14 @@
     "@testing-library/dom": "10.4.0",
     "@testing-library/react": "16.1.0",
     "@types/bcrypt": "^5.0.2",
-    "@types/express": "^5.0.1",
+    "@types/express": "^5.0.2",
     "@types/jest": "^29.5.12",
     "@types/multer": "^1.4.12",
-    "@types/node": "18.16.9",
+    "@types/node": "^22.15.21",
     "@types/passport-jwt": "^4.0.1",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
-    "@vitejs/plugin-react": "^4.2.0",
+    "@vitejs/plugin-react": "^4.5.0",
     "@vitest/coverage-v8": "^3.0.5",
     "autoprefixer": "10.4.13",
     "babel-jest": "^29.7.0",
@@ -95,10 +96,17 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.19.0",
     "verdaccio": "^6.0.5",
-    "vite": "^6.0.0",
+    "vite": "^6.3.5",
     "vite-plugin-dts": "~4.5.0",
-    "vitest": "^3.0.0",
+    "vitest": "^3.1.4",
     "webpack-cli": "^5.1.4"
   },
-  "nx": {}
+  "nx": {},
+  "resolutions": {
+    "@rollup/*": "3.29.4"
+  },
+  "overrides": {
+    "@rollup/rollup-linux-x64-gnu": false
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
