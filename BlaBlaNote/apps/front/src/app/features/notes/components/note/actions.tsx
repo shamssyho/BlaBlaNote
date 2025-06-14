@@ -6,6 +6,10 @@ import {
 } from '@ant-design/icons';
 
 export const Actions = () => {
+  const handleDelete = () => {
+    // Logic to handle deletion of the note
+    console.log('Note deleted');
+  };
   return (
     <div className="flex items-center place-content-between gap-4">
       <div className="flex items-center gap-2 cursor-pointer pl-3 pr-3 pt-1 pb-1 border rounded-lg border-solid hover:text-blue-500 ">
@@ -20,7 +24,10 @@ export const Actions = () => {
 
         <section className="cursor-pointer text-red-600 hover:text-red-700 flex items-center gap-2 pl-3 pr-3 pt-1 pb-1">
           <DeleteOutlined />
-          <span className="ml-2 text-red-600 cursor-pointer hover:text-red-700">
+          <span
+            onClick={handleDelete}
+            className="ml-2 text-red-600 cursor-pointer hover:text-red-700"
+          >
             Supprimer
           </span>
         </section>
