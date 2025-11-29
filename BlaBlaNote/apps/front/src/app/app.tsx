@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Login from './features/auth/pages/login/login';
 import { Register } from './features/auth/pages/register/register';
 import { Notes } from './features/notes/pages/notes';
+import { Note } from './features/notes/pages/note';
 
 export default function app() {
   const router = createBrowserRouter([
@@ -17,6 +18,7 @@ export default function app() {
       path: '/notes',
       element: <Notes />,
     },
+    { path: '/note/:id', element: <Note /> },
   ]);
 
   return (
