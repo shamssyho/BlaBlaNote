@@ -16,8 +16,7 @@ export const ActionsBar = ({ onDelete, id }: ActionsProps) => {
         <div className="flex gap-4">
             {notes.map((note) => (
               <Link key={note.id} to={`/note/${note.id}`}>
-                )
-          }}
+                ))}
           <section className="cursor-pointer hover:text-blue-500 flex items-center gap-2 pl-3 pr-3 pt-1 pb-1">
             <ShareAltOutlined />
             <span className="ml-2 cursor-pointer">Partager</span>

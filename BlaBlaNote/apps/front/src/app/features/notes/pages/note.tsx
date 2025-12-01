@@ -9,6 +9,7 @@ export const Note = () => {
   const { id } = useParams();
   const handleDelete = (id: string) => {
     setNotes(notes.filter((note) => note.id !== id));
+
     console.log(notes);
     console.log(`Note with id ${id} deleted`);
     console.log(notes);
