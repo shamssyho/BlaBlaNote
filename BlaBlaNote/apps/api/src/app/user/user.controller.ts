@@ -1,35 +1,42 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Put,
-  Delete,
-  Body,
-  Param,
-  UseGuards,
-  SetMetadata,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { UserService } from './user.service';
 import {
-  ApiTags,
+  ApiBearerAuth,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
+import { UserService } from './user.service';
 
 @ApiTags('Users')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @Post()
-  @ApiOperation({ summary: 'Create a new user' })
+  @ApiOperation({ summary: 'Create a new user (Admin only)' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required',
+  })
   createUser(@Body() dto: CreateUserDto) {
     return this.userService.createUser(dto);
   }
@@ -79,12 +86,15 @@ export class UserController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @SetMetadata('roles', ['ADMIN'])
+  @Roles('ADMIN')
   @Put(':id/role')
   @ApiOperation({ summary: 'Update user role (Admin only)' })
   @ApiResponse({ status: 200, description: 'User role updated' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  updateUserRole(@Param('id') id: string, @Query('role') role: string) {
-    return this.userService.updateUserRole(id, role as 'ADMIN' | 'USER');
+  updateUserRole(
+    @Param('id') id: string,
+    @Query('role') role: 'ADMIN' | 'USER'
+  ) {
+    return this.userService.updateUserRole(id, role);
   }
 }
