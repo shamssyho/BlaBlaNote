@@ -12,6 +12,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateNoteDto } from './dto/create-note.dto';
 import {
   ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -28,6 +30,7 @@ export class NoteController {
   @Get()
   @ApiOperation({ summary: 'Get all notes for the current user' })
   @ApiResponse({ status: 200, description: 'List of notes' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMyNotes(@Req() req: Request) {
     const userId = req.user['sub'];
     return this.noteService.getNotesByUser(userId);
@@ -36,6 +39,7 @@ export class NoteController {
   @Post()
   @ApiOperation({ summary: 'Create a new note manually' })
   @ApiResponse({ status: 201, description: 'Note created successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createNote(@Body() dto: CreateNoteDto, @Req() req: Request) {
     const userId = req.user['sub'];
     return this.noteService.createNote(dto, userId);
@@ -43,7 +47,22 @@ export class NoteController {
 
   @Post(':id/share')
   @ApiOperation({ summary: 'Share a note via email or WhatsApp' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        method: { type: 'string', example: 'email' },
+        to: { type: 'string', example: 'recipient@example.com' },
+        type: {
+          type: 'string',
+          enum: ['summary', 'translation'],
+          example: 'summary',
+        },
+      },
+    },
+  })
   @ApiResponse({ status: 200, description: 'Note shared successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async shareNote(
     @Param('id') id: string,
     @Body()

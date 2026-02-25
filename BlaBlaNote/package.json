@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "nx serve api",
     "build": "nx run-many --target=build --all",
-    "start": "nx serve api"
+    "start": "nx serve api",
+    "prisma:sync": "cp apps/api/prisma/schema.prisma prisma/schema.prisma",
+    "prisma:generate": "yarn prisma:sync && npx prisma generate",
+    "prisma:migrate": "yarn prisma:sync && npx prisma migrate dev"
   },
   "private": true,
   "dependencies": {
@@ -16,7 +19,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.12",
     "@nestjs/swagger": "^11.0.6",
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "6.8.2",
     "antd": "^5.25.1",
     "axios": "^1.8.4",
     "bcrypt": "^6.0.0",
@@ -66,7 +69,7 @@
     "@types/express": "^5.0.2",
     "@types/jest": "^29.5.12",
     "@types/multer": "^1.4.12",
-    "@types/node": "^22.15.21",
+    "@types/node": "^25.3.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
@@ -89,10 +92,12 @@
     "nx": "20.5.0",
     "postcss": "8.4.38",
     "prettier": "^2.6.2",
+    "prisma": "6.8.2",
     "tailwindcss": "3.4.3",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
+    "tsx": "^4.21.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.19.0",
     "verdaccio": "^6.0.5",
@@ -108,5 +113,9 @@
   "overrides": {
     "@rollup/rollup-linux-x64-gnu": false
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "prisma": {
+    "schema": "apps/api/prisma/schema.prisma",
+    "seed": "tsx apps/api/prisma/seed.ts"
+  },
+  "packageManager": "yarn@1.22.22"
 }

@@ -1,37 +1,32 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { UserService } from '../user/user.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly userService: UserService
-  ) {}
-
-  @Post('login')
-  @ApiOperation({ summary: 'User login' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() body: { email: string; password: string }) {
-    return this.authService.login(body.email, body.password);
-  }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'User created successfully' })
-  @ApiResponse({ status: 409, description: 'Email already exists' })
-  async register(
-    @Body()
-    body: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      password: string;
-    }
-  ) {
-    return this.userService.createUser(body);
+  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 409 })
+  register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
+  }
+
+  @Post('login')
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 401 })
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto.email, dto.password);
   }
 }

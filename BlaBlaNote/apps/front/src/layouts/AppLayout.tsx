@@ -6,13 +6,18 @@ import { CreateProjectForm } from '../modules/projects/CreateProjectForm';
 
 export function AppLayout({ children }: PropsWithChildren) {
   const { projects, isLoading, error, refetch } = useProjects();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-header">
           <h1>Blabla note</h1>
+          {user && (
+            <p>
+              Welcome, {user.firstName} {user.lastName}
+            </p>
+          )}
           <button type="button" onClick={logout}>
             Logout
           </button>
