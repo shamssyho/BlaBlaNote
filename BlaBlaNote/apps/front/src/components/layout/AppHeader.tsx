@@ -1,24 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/cn';
+import { persistLanguage } from '../../i18n/detectLanguage';
 import { Link, NavLink, usePathname } from '../../router/router';
-
-const NAV_ITEMS = [
-  { label: 'Home', to: '/home' },
-  { label: 'Notes', to: '/notes' },
-  { label: 'Create note', to: '/notes/new' },
-] as const;
 
 const navLinkClassName =
   'inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2';
 const navLinkActiveClassName = `${navLinkClassName} bg-slate-200 text-slate-900`;
 
+const LANGUAGE_OPTIONS = [
+  { code: 'fr', label: 'FR' },
+  { code: 'en', label: 'EN' },
+  { code: 'ar', label: 'AR' },
+] as const;
+
 export function AppHeader() {
   const pathname = usePathname();
+  const { t, i18n } = useTranslation();
   const { logout, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const isRtl = i18n.language.startsWith('ar');
+
+  const navItems = [
+    { label: t('nav.home'), to: '/home' },
+    { label: t('nav.notes'), to: '/notes' },
+    { label: t('nav.createNote'), to: '/notes/new' },
+  ] as const;
 
   const initials = [user?.firstName, user?.lastName]
     .filter(Boolean)
@@ -44,6 +54,11 @@ export function AppHeader() {
     setUserMenuOpen(false);
   }, [pathname]);
 
+  function onLanguageChange(language: 'fr' | 'en' | 'ar') {
+    persistLanguage(language);
+    void i18n.changeLanguage(language);
+  }
+
   const sharedRouteExists = false;
 
   return (
@@ -54,7 +69,7 @@ export function AppHeader() {
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 text-lg text-slate-900 md:hidden"
             onClick={() => setMobileMenuOpen((value) => !value)}
-            aria-label="Toggle navigation menu"
+            aria-label={t('nav.toggleNavigation')}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-nav"
           >
@@ -66,8 +81,8 @@ export function AppHeader() {
           </Link>
         </div>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
-          {NAV_ITEMS.map((item) => (
+        <nav className="hidden items-center gap-1 md:flex" aria-label={t('nav.primaryNavigation')}>
+          {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={navLinkClassName} activeClassName={navLinkActiveClassName}>
               {item.label}
             </NavLink>
@@ -75,63 +90,92 @@ export function AppHeader() {
 
           {sharedRouteExists ? (
             <NavLink to="/shared" className={navLinkClassName} activeClassName={navLinkActiveClassName}>
-              Shared
+              {t('nav.shared')}
             </NavLink>
           ) : (
-            <span className="inline-flex cursor-not-allowed items-center rounded-md px-3 py-2 text-sm font-medium text-slate-400" aria-disabled="true" title="Shared notes route not available yet">
-              Shared
+            <span
+              className="inline-flex cursor-not-allowed items-center rounded-md px-3 py-2 text-sm font-medium text-slate-400"
+              aria-disabled="true"
+              title={t('nav.sharedUnavailable')}
+            >
+              {t('nav.shared')}
             </span>
           )}
         </nav>
 
-        <div className="relative" ref={userMenuRef}>
-          <button
-            type="button"
-            className="inline-flex rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
-            onClick={() => setUserMenuOpen((value) => !value)}
-            aria-haspopup="menu"
-            aria-expanded={userMenuOpen}
-            aria-label="Open user menu"
-          >
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-              {initials || 'U'}
-            </span>
-          </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 rounded-md border border-slate-300 bg-white p-1" aria-label={t('nav.language')}>
+            {LANGUAGE_OPTIONS.map((option) => {
+              const isActive = i18n.language.startsWith(option.code);
+              return (
+                <button
+                  key={option.code}
+                  type="button"
+                  className={cn(
+                    'rounded px-2 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-1',
+                    isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                  )}
+                  onClick={() => onLanguageChange(option.code)}
+                  aria-pressed={isActive}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
 
-          {userMenuOpen ? (
-            <div
-              className="absolute right-0 top-[calc(100%+0.5rem)] grid w-44 gap-0.5 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
-              role="menu"
-              aria-label="User menu"
+          <div className="relative" ref={userMenuRef}>
+            <button
+              type="button"
+              className="inline-flex rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+              onClick={() => setUserMenuOpen((value) => !value)}
+              aria-haspopup="menu"
+              aria-expanded={userMenuOpen}
+              aria-label={t('nav.openUserMenu')}
             >
-              <Link to="/profile" className="rounded-md px-3 py-2 text-left text-sm text-slate-900 hover:bg-slate-100">
-                Profile
-              </Link>
-              <Link to="/settings" className="rounded-md px-3 py-2 text-left text-sm text-slate-900 hover:bg-slate-100">
-                Settings
-              </Link>
-              <button
-                type="button"
-                onClick={logout}
-                className="rounded-md px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+                {initials || 'U'}
+              </span>
+            </button>
+
+            {userMenuOpen ? (
+              <div
+                className={cn(
+                  'absolute top-[calc(100%+0.5rem)] grid w-44 gap-0.5 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg',
+                  isRtl ? 'left-0' : 'right-0'
+                )}
+                role="menu"
+                aria-label={t('nav.openUserMenu')}
               >
-                Logout
-              </button>
-            </div>
-          ) : null}
+                <Link to="/profile" className="rounded-md px-3 py-2 text-start text-sm text-slate-900 hover:bg-slate-100">
+                  {t('nav.profile')}
+                </Link>
+                <Link to="/settings" className="rounded-md px-3 py-2 text-start text-sm text-slate-900 hover:bg-slate-100">
+                  {t('nav.settings')}
+                </Link>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="rounded-md px-3 py-2 text-start text-sm text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+                >
+                  {t('nav.logout')}
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 
       {mobileMenuOpen ? (
-        <nav id="mobile-nav" className="grid gap-1 border-t border-slate-200 bg-white p-4 md:hidden" aria-label="Mobile primary navigation">
-          {NAV_ITEMS.map((item) => (
+        <nav id="mobile-nav" className="grid gap-1 border-t border-slate-200 bg-white p-4 md:hidden" aria-label={t('nav.mobilePrimaryNavigation')}>
+          {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={navLinkClassName} activeClassName={navLinkActiveClassName}>
               {item.label}
             </NavLink>
           ))}
           {sharedRouteExists ? (
             <NavLink to="/shared" className={navLinkClassName} activeClassName={navLinkActiveClassName}>
-              Shared
+              {t('nav.shared')}
             </NavLink>
           ) : (
             <span
@@ -140,7 +184,7 @@ export function AppHeader() {
               )}
               aria-disabled="true"
             >
-              Shared (coming soon)
+              {t('nav.sharedComingSoon')}
             </span>
           )}
         </nav>

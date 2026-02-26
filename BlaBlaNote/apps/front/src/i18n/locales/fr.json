@@ -1,0 +1,36 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "notes": "Notes",
+    "createNote": "Créer une note",
+    "shared": "Partagées",
+    "sharedComingSoon": "Partagées (bientôt)",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter",
+    "toggleNavigation": "Basculer le menu de navigation",
+    "openUserMenu": "Ouvrir le menu utilisateur",
+    "language": "Langue",
+    "sharedUnavailable": "La route des notes partagées n'est pas encore disponible",
+    "mobilePrimaryNavigation": "Navigation principale mobile",
+    "primaryNavigation": "Navigation principale"
+  },
+  "home": {
+    "welcomeBack": "Bon retour",
+    "dashboardFallback": "Votre tableau de bord de notes",
+    "description": "Capturez vos idées rapidement, consultez vos enregistrements récents et gardez vos notes bien organisées.",
+    "quickActions": "Actions rapides",
+    "searchNotes": "Rechercher des notes",
+    "totalNotes": "Nombre total de notes",
+    "lastUpdated": "Dernière mise à jour",
+    "recentNotes": "Notes récentes",
+    "viewAll": "Voir tout",
+    "loadingNotes": "Chargement des notes...",
+    "noNotesYet": "Aucune note pour le moment",
+    "emptyStateDescription": "Démarrez votre espace de travail en créant votre première note.",
+    "createFirstNote": "Créer votre première note",
+    "openNoteCreatedAt": "Ouvrir la note créée le {{date}}",
+    "summaryPending": "Résumé en attente...",
+    "noDate": "—"
+  }
+}
