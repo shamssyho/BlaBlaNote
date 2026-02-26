@@ -8,6 +8,15 @@ import { RegisterPage } from '../pages/RegisterPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { matchPath, RouterProvider, usePathname } from './router';
 
+function PlaceholderPage({ title }: { title: string }) {
+  return (
+    <section>
+      <h1>{title}</h1>
+      <p>This area is coming soon.</p>
+    </section>
+  );
+}
+
 function RoutedApp() {
   const path = usePathname();
 
@@ -23,7 +32,7 @@ function RoutedApp() {
     return <LandingPage />;
   }
 
-  if (path === '/dashboard') {
+  if (path === '/dashboard' || path === '/home') {
     return (
       <ProtectedRoute redirectTo="/login">
         <AppLayout>
@@ -33,11 +42,31 @@ function RoutedApp() {
     );
   }
 
-  if (path === '/notes') {
+  if (path === '/notes' || path === '/notes/new') {
     return (
       <ProtectedRoute redirectTo="/login">
         <AppLayout>
           <NotesListPage />
+        </AppLayout>
+      </ProtectedRoute>
+    );
+  }
+
+  if (path === '/profile') {
+    return (
+      <ProtectedRoute redirectTo="/login">
+        <AppLayout>
+          <PlaceholderPage title="Profile" />
+        </AppLayout>
+      </ProtectedRoute>
+    );
+  }
+
+  if (path === '/settings') {
+    return (
+      <ProtectedRoute redirectTo="/login">
+        <AppLayout>
+          <PlaceholderPage title="Settings" />
         </AppLayout>
       </ProtectedRoute>
     );
