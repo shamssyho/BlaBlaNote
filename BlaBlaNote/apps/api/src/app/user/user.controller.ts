@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -20,6 +21,7 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AcceptTermsDto } from './dto/accept-terms.dto';
 import { UserService } from './user.service';
 
 @ApiTags('Users')
@@ -39,6 +41,15 @@ export class UserController {
   })
   createUser(@Body() dto: CreateUserDto) {
     return this.userService.createUser(dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('me/accept-terms')
+  @ApiOperation({ summary: 'Accept terms and conditions' })
+  @ApiResponse({ status: 200, description: 'Terms accepted' })
+  acceptTerms(@Body() dto: AcceptTermsDto, @Req() req: { user: { id: string } }) {
+    return this.userService.acceptTerms(req.user.id, dto.termsVersion);
   }
 
   @ApiBearerAuth()

@@ -6,6 +6,7 @@ import {
   AuthUser,
 } from '../../types/auth.types';
 import { tokenStorage } from './token.storage';
+import { registerAuthLogoutHandler } from '../../api/http';
 
 type AuthContextValue = {
   isAuthenticated: boolean;
@@ -13,7 +14,7 @@ type AuthContextValue = {
   user: AuthUser | null;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -24,11 +25,32 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    const token = tokenStorage.getAccessToken();
-    const user = tokenStorage.getUser();
-    setIsAuthenticated(Boolean(token));
-    setUser(user);
-    setIsLoading(false);
+    const persistedUser = tokenStorage.getUser();
+    setUser(persistedUser);
+
+    authApi
+      .refresh()
+      .then(({ access_token }) => {
+        tokenStorage.setAccessToken(access_token);
+        setIsAuthenticated(true);
+      })
+      .catch(() => {
+        tokenStorage.clearAccessToken();
+        setIsAuthenticated(false);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    registerAuthLogoutHandler(() => {
+      tokenStorage.clearAccessToken();
+      tokenStorage.clearUser();
+      setUser(null);
+      setIsAuthenticated(false);
+      window.location.href = '/login';
+    });
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -44,8 +66,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setIsAuthenticated(true);
       },
       async register(payload) {
-        const user = await authApi.register(payload);
-        // Auto-login after successful registration
+        await authApi.register(payload);
         const response = await authApi.login({
           email: payload.email,
           password: payload.password,
@@ -55,7 +76,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(response.user);
         setIsAuthenticated(true);
       },
-      logout() {
+      async logout() {
+        await authApi.logout().catch(() => undefined);
         tokenStorage.clearAccessToken();
         tokenStorage.clearUser();
         setUser(null);
