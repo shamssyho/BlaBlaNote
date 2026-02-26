@@ -1,5 +1,6 @@
 import { AppLayout } from '../layouts/AppLayout';
 import { DashboardPage } from '../pages/DashboardPage';
+import { LandingPage } from '../pages/LandingPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NoteDetailPage } from '../pages/NoteDetailPage';
 import { NotesListPage } from '../pages/NotesListPage';
@@ -18,7 +19,11 @@ function RoutedApp() {
     return <RegisterPage />;
   }
 
-  if (path === '/' || path === '/dashboard') {
+  if (path === '/') {
+    return <LandingPage />;
+  }
+
+  if (path === '/dashboard') {
     return (
       <ProtectedRoute redirectTo="/login">
         <AppLayout>
@@ -49,7 +54,7 @@ function RoutedApp() {
     );
   }
 
-  return <LoginPage />;
+  return <LandingPage />;
 }
 
 export function AppRouter() {
