@@ -13,17 +13,22 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { Request } from 'express';
 
+type AuthUser = {
+  id: string;
+  email: string;
+  role: 'ADMIN' | 'USER';
+};
+
 @ApiTags('Notes')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Controller('note')
+@Controller('notes')
 export class NoteController {
   constructor(private readonly noteService: NoteService) {}
 
@@ -32,8 +37,8 @@ export class NoteController {
   @ApiResponse({ status: 200, description: 'List of notes' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMyNotes(@Req() req: Request) {
-    const userId = req.user['sub'];
-    return this.noteService.getNotesByUser(userId);
+    const user = req.user as AuthUser;
+    return this.noteService.getNotesByUser(user.id);
   }
 
   @Post()
@@ -41,8 +46,8 @@ export class NoteController {
   @ApiResponse({ status: 201, description: 'Note created successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createNote(@Body() dto: CreateNoteDto, @Req() req: Request) {
-    const userId = req.user['sub'];
-    return this.noteService.createNote(dto, userId);
+    const user = req.user as AuthUser;
+    return this.noteService.createNote(dto, user.id);
   }
 
   @Post(':id/share')
