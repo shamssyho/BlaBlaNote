@@ -7,21 +7,21 @@ export function AppLayout({ children }: PropsWithChildren) {
   const { projects, isLoading, error, refetch } = useProjects();
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <AppHeader />
 
-      <main className="content">
+      <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
         {children}
 
-        <section className="projects-panel" aria-label="Projects overview">
-          <div className="projects-panel-header">
-            <h2>Projects</h2>
+        <section className="grid gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm" aria-label="Projects overview">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Projects</h2>
           </div>
 
           {isLoading ? <p>Loading projects...</p> : null}
           {error ? <p className="error-text">{error}</p> : null}
 
-          <ul className="projects-items">
+          <ul className="m-0 list-none space-y-1 p-0 text-slate-700">
             {projects.map((project) => (
               <li key={project.id}>{project.name}</li>
             ))}
