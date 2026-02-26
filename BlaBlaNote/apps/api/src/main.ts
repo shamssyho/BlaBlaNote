@@ -27,7 +27,7 @@ async function bootstrap() {
     })
   );
 
-  const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:4201';
+  const frontendOrigin = process.env.FRONTEND_URL || 'http://localhost:4200';
   app.enableCors({
     origin: frontendOrigin,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

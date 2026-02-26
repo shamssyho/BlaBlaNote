@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  TooManyRequestsException,
   UnauthorizedException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
+
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -17,8 +19,14 @@ import { MailerService } from './mailer.service';
 
 @Injectable()
 export class AuthService {
-  private readonly forgotPasswordByIp = new Map<string, { count: number; resetAt: number }>();
-  private readonly forgotPasswordByEmail = new Map<string, { count: number; resetAt: number }>();
+  private readonly forgotPasswordByIp = new Map<
+    string,
+    { count: number; resetAt: number }
+  >();
+  private readonly forgotPasswordByEmail = new Map<
+    string,
+    { count: number; resetAt: number }
+  >();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -28,18 +36,28 @@ export class AuthService {
     private readonly mailerService: MailerService
   ) {}
 
-  private generateAccessToken(user: { id: string; email: string; role: 'ADMIN' | 'USER' }) {
+  private generateAccessToken(user: {
+    id: string;
+    email: string;
+    role: 'ADMIN' | 'USER';
+  }) {
     const payload = { sub: user.id, email: user.email, role: user.role };
-    return this.jwtService.sign(payload, { expiresIn: jwtConstants.accessExpiresIn });
+    return this.jwtService.sign(payload, {
+      expiresIn: jwtConstants.accessExpiresIn,
+    });
   }
 
   private getRefreshExpiry(rememberMe: boolean) {
     const now = Date.now();
     if (rememberMe) {
-      return new Date(now + jwtConstants.refreshExpiresInRememberMeDays * 24 * 60 * 60 * 1000);
+      return new Date(
+        now + jwtConstants.refreshExpiresInRememberMeDays * 24 * 60 * 60 * 1000
+      );
     }
 
-    return new Date(now + jwtConstants.refreshExpiresInSessionHours * 60 * 60 * 1000);
+    return new Date(
+      now + jwtConstants.refreshExpiresInSessionHours * 60 * 60 * 1000
+    );
   }
 
   private hitRateLimit(
@@ -57,7 +75,10 @@ export class AuthService {
     }
 
     if (current.count >= limit) {
-      throw new TooManyRequestsException('Too many requests, please retry later');
+      throw new HttpException(
+        'Too many requests',
+        HttpStatus.TOO_MANY_REQUESTS
+      );
     }
 
     current.count += 1;
@@ -144,12 +165,16 @@ export class AuthService {
   }
 
   async refresh(rawRefreshToken: string) {
-    const existingToken = await this.refreshTokenService.findActiveByRawToken(rawRefreshToken);
+    const existingToken = await this.refreshTokenService.findActiveByRawToken(
+      rawRefreshToken
+    );
     if (!existingToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: existingToken.userId } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: existingToken.userId },
+    });
     if (!user) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -175,7 +200,9 @@ export class AuthService {
       return { success: true };
     }
 
-    const token = await this.refreshTokenService.findActiveByRawToken(rawRefreshToken);
+    const token = await this.refreshTokenService.findActiveByRawToken(
+      rawRefreshToken
+    );
     if (token) {
       await this.refreshTokenService.revokeToken(token.id);
     }
@@ -185,7 +212,12 @@ export class AuthService {
 
   async forgotPassword(email: string, ip = 'unknown') {
     this.hitRateLimit(ip, 5, 60_000, this.forgotPasswordByIp);
-    this.hitRateLimit(email.toLowerCase(), 3, 10 * 60_000, this.forgotPasswordByEmail);
+    this.hitRateLimit(
+      email.toLowerCase(),
+      3,
+      10 * 60_000,
+      this.forgotPasswordByEmail
+    );
 
     const genericResponse = {
       message:
@@ -198,8 +230,13 @@ export class AuthService {
     }
 
     const rawToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
-    const expiresAt = new Date(Date.now() + jwtConstants.resetPasswordTokenMinutes * 60 * 1000);
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+    const expiresAt = new Date(
+      Date.now() + jwtConstants.resetPasswordTokenMinutes * 60 * 1000
+    );
 
     await this.prisma.passwordResetToken.create({
       data: {
@@ -209,7 +246,7 @@ export class AuthService {
       },
     });
 
-    const frontendBase = process.env.FRONTEND_URL || 'http://localhost:4201';
+    const frontendBase = process.env.FRONTEND_URL || 'http://localhost:4200';
     const resetLink = `${frontendBase}/reset-password?token=${rawToken}`;
     await this.mailerService.sendPasswordResetEmail(user.email, resetLink);
 
