@@ -1,5 +1,5 @@
 import { AppLayout } from '../layouts/AppLayout';
-import { DashboardPage } from '../pages/DashboardPage';
+import { HomePage } from '../pages/Home';
 import { LandingPage } from '../pages/LandingPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NoteDetailPage } from '../pages/NoteDetailPage';
@@ -36,7 +36,7 @@ function RoutedApp() {
     return (
       <ProtectedRoute redirectTo="/login">
         <AppLayout>
-          <DashboardPage />
+          <HomePage />
         </AppLayout>
       </ProtectedRoute>
     );

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { cn } from '../../lib/cn';
 import { Link, NavLink, usePathname } from '../../router/router';
 
 const NAV_ITEMS = [
@@ -7,6 +8,10 @@ const NAV_ITEMS = [
   { label: 'Notes', to: '/notes' },
   { label: 'Create note', to: '/notes/new' },
 ] as const;
+
+const navLinkClassName =
+  'inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2';
+const navLinkActiveClassName = `${navLinkClassName} bg-slate-200 text-slate-900`;
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -42,12 +47,12 @@ export function AppHeader() {
   const sharedRouteExists = false;
 
   return (
-    <header className="app-header">
-      <div className="app-header-inner">
-        <div className="app-header-brand">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
+      <div className="mx-auto flex min-h-[68px] w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            className="header-menu-toggle"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 text-lg text-slate-900 md:hidden"
             onClick={() => setMobileMenuOpen((value) => !value)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileMenuOpen}
@@ -56,50 +61,60 @@ export function AppHeader() {
             ☰
           </button>
 
-          <Link to="/home" className="header-logo-link">
+          <Link to="/home" className="text-lg font-bold text-slate-900">
             BlaBlaNote
           </Link>
         </div>
 
-        <nav className="header-nav" aria-label="Primary">
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
           {NAV_ITEMS.map((item) => (
-            <NavLink key={item.to} to={item.to} className="header-nav-link" activeClassName="header-nav-link active">
+            <NavLink key={item.to} to={item.to} className={navLinkClassName} activeClassName={navLinkActiveClassName}>
               {item.label}
             </NavLink>
           ))}
 
           {sharedRouteExists ? (
-            <NavLink to="/shared" className="header-nav-link" activeClassName="header-nav-link active">
+            <NavLink to="/shared" className={navLinkClassName} activeClassName={navLinkActiveClassName}>
               Shared
             </NavLink>
           ) : (
-            <span className="header-nav-link disabled" aria-disabled="true" title="Shared notes route not available yet">
+            <span className="inline-flex cursor-not-allowed items-center rounded-md px-3 py-2 text-sm font-medium text-slate-400" aria-disabled="true" title="Shared notes route not available yet">
               Shared
             </span>
           )}
         </nav>
 
-        <div className="user-menu" ref={userMenuRef}>
+        <div className="relative" ref={userMenuRef}>
           <button
             type="button"
-            className="user-menu-trigger"
+            className="inline-flex rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
             onClick={() => setUserMenuOpen((value) => !value)}
             aria-haspopup="menu"
             aria-expanded={userMenuOpen}
             aria-label="Open user menu"
           >
-            <span className="avatar-badge">{initials || 'U'}</span>
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+              {initials || 'U'}
+            </span>
           </button>
 
           {userMenuOpen ? (
-            <div className="user-menu-dropdown" role="menu" aria-label="User menu">
-              <Link to="/profile" className="user-menu-item">
+            <div
+              className="absolute right-0 top-[calc(100%+0.5rem)] grid w-44 gap-0.5 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+              role="menu"
+              aria-label="User menu"
+            >
+              <Link to="/profile" className="rounded-md px-3 py-2 text-left text-sm text-slate-900 hover:bg-slate-100">
                 Profile
               </Link>
-              <Link to="/settings" className="user-menu-item">
+              <Link to="/settings" className="rounded-md px-3 py-2 text-left text-sm text-slate-900 hover:bg-slate-100">
                 Settings
               </Link>
-              <button type="button" onClick={logout} className="user-menu-item danger-item">
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-md px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2"
+              >
                 Logout
               </button>
             </div>
@@ -108,18 +123,23 @@ export function AppHeader() {
       </div>
 
       {mobileMenuOpen ? (
-        <nav id="mobile-nav" className="mobile-nav" aria-label="Mobile primary navigation">
+        <nav id="mobile-nav" className="grid gap-1 border-t border-slate-200 bg-white p-4 md:hidden" aria-label="Mobile primary navigation">
           {NAV_ITEMS.map((item) => (
-            <NavLink key={item.to} to={item.to} className="mobile-nav-link" activeClassName="mobile-nav-link active">
+            <NavLink key={item.to} to={item.to} className={navLinkClassName} activeClassName={navLinkActiveClassName}>
               {item.label}
             </NavLink>
           ))}
           {sharedRouteExists ? (
-            <NavLink to="/shared" className="mobile-nav-link" activeClassName="mobile-nav-link active">
+            <NavLink to="/shared" className={navLinkClassName} activeClassName={navLinkActiveClassName}>
               Shared
             </NavLink>
           ) : (
-            <span className="mobile-nav-link disabled" aria-disabled="true">
+            <span
+              className={cn(
+                'inline-flex cursor-not-allowed items-center rounded-md px-3 py-2 text-sm font-medium text-slate-400'
+              )}
+              aria-disabled="true"
+            >
               Shared (coming soon)
             </span>
           )}
