@@ -8,6 +8,8 @@ import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { DiscordModule } from '../discord/discord.module';
+import { RefreshTokenService } from './refresh-token.service';
+import { MailerService } from './mailer.service';
 
 @Module({
   imports: [
@@ -16,11 +18,11 @@ import { DiscordModule } from '../discord/discord.module';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: jwtConstants.expiresIn },
+      signOptions: { expiresIn: jwtConstants.accessExpiresIn },
     }),
     DiscordModule,
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, RefreshTokenService, MailerService],
   controllers: [AuthController],
   exports: [AuthService, JwtModule],
 })

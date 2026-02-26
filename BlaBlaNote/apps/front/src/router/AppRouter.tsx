@@ -7,6 +7,10 @@ import { NotesListPage } from '../pages/NotesListPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { matchPath, RouterProvider, usePathname } from './router';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage';
+import { TermsPage } from '../pages/TermsPage';
+import { TermsConsentPage } from '../pages/TermsConsentPage';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -26,6 +30,26 @@ function RoutedApp() {
 
   if (path === '/register') {
     return <RegisterPage />;
+  }
+
+  if (path === '/forgot-password') {
+    return <ForgotPasswordPage />;
+  }
+
+  if (path === '/reset-password') {
+    return <ResetPasswordPage />;
+  }
+
+  if (path === '/terms') {
+    return <TermsPage />;
+  }
+
+  if (path === '/terms-consent') {
+    return (
+      <ProtectedRoute redirectTo="/login">
+        <TermsConsentPage />
+      </ProtectedRoute>
+    );
   }
 
   if (path === '/') {

@@ -10,6 +10,7 @@ export function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +20,14 @@ export function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await register({ firstName, lastName, email, password });
+      await register({
+        firstName,
+        lastName,
+        email,
+        password,
+        termsAccepted,
+        termsVersion: 'v1.0',
+      });
       navigate('/dashboard');
     } catch (err) {
       setError((err as ApiError).message);
@@ -42,8 +50,17 @@ export function RegisterPage() {
           placeholder="Password"
           required
         />
+        <label>
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(event) => setTermsAccepted(event.target.checked)}
+            required
+          />{' '}
+          I accept the <Link to="/terms">Terms & Conditions</Link>
+        </label>
         {error ? <p className="error-text">{error}</p> : null}
-        <button type="submit" disabled={isSubmitting}>
+        <button type="submit" disabled={isSubmitting || !termsAccepted}>
           {isSubmitting ? 'Creating account...' : 'Create account'}
         </button>
         <p>

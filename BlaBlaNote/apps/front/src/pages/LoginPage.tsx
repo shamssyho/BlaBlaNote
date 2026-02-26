@@ -8,6 +8,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +18,7 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
+      await login({ email, password, rememberMe });
       navigate('/dashboard');
     } catch (err) {
       setError((err as ApiError).message);
@@ -44,10 +45,21 @@ export function LoginPage() {
           placeholder="Password"
           required
         />
+        <label>
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(event) => setRememberMe(event.target.checked)}
+          />{' '}
+          Remember me
+        </label>
         {error ? <p className="error-text">{error}</p> : null}
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Signing in...' : 'Sign in'}
         </button>
+        <p>
+          <Link to="/forgot-password">Forgot password?</Link>
+        </p>
         <p>
           No account? <Link to="/register">Create one</Link>
         </p>
