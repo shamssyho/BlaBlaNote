@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "notes": "الملاحظات",
+    "createNote": "إنشاء ملاحظة",
+    "shared": "مشاركة",
+    "sharedComingSoon": "الملاحظات المشتركة (قريبًا)",
+    "sharedUnavailable": "مسار الملاحظات المشتركة غير متاح بعد",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "toggleNavigation": "تبديل قائمة التنقل",
+    "openUserMenu": "فتح قائمة المستخدم",
+    "primaryNavigation": "التنقل الرئيسي",
+    "mobileNavigation": "التنقل الرئيسي على الهاتف",
+    "userMenu": "قائمة المستخدم",
+    "language": "اللغة"
+  },
+  "home": {
+    "welcomeBack": "مرحبًا بعودتك",
+    "yourDashboard": "لوحة ملاحظاتك",
+    "subtitle": "دوّن أفكارك بسرعة، وراجع التسجيلات الأخيرة، وحافظ على تنظيم ملاحظاتك.",
+    "quickActions": "إجراءات سريعة",
+    "searchNotes": "ابحث في الملاحظات",
+    "totalNotes": "إجمالي الملاحظات",
+    "lastUpdated": "آخر تحديث",
+    "recentNotes": "الملاحظات الأخيرة",
+    "viewAll": "عرض الكل",
+    "loadingNotes": "جارٍ تحميل الملاحظات...",
+    "noNotesYet": "لا توجد ملاحظات بعد",
+    "emptyStateDescription": "ابدأ مساحة عملك بإنشاء أول ملاحظة.",
+    "createFirstNote": "أنشئ أول ملاحظة",
+    "summaryPending": "الملخص قيد المعالجة..."
+  },
+  "common": {
+    "fallbackUserInitial": "م"
+  }
+}

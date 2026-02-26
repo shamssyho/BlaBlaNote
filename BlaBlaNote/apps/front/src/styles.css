@@ -102,6 +102,45 @@ select {
   background: #fff;
 }
 
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.language-option {
+  border: none;
+  background: transparent;
+  color: #334155;
+  padding: 0.4rem 0.6rem;
+  min-width: 44px;
+}
+
+.language-option.active {
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+[dir='rtl'] .user-menu-dropdown {
+  left: 0;
+  right: auto;
+}
+
+.welcome-actions-label {
+  font-weight: 600;
+  color: #0f172a;
+}
 .user-menu {
   position: relative;
 }
