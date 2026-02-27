@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 import { Twilio } from 'twilio';
 import { DiscordService } from '../discord/discord.service';
@@ -25,10 +26,31 @@ export class NoteService {
     );
   }
 
-  async getNotesByUser(userId: string) {
+  async getNotesByUser(userId: string, query: GetNotesQueryDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     const notes = await this.prisma.note.findMany({
-      where: { userId },
+      where: {
+        userId,
+        ...(query.tagIds?.length
+          ? {
+              AND: query.tagIds.map((tagId) => ({
+                noteTags: {
+                  some: {
+                    tagId,
+                    tag: { userId },
+                  },
+                },
+              })),
+            }
+          : {}),
+      },
+      include: {
+        noteTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -117,7 +139,56 @@ ${note.text || 'Not available'}
     return { success: false, message: 'Unsupported method' };
   }
 
-  async updateNoteProject(noteId: string, userId: string, projectId: string | null) {
+  async replaceNoteTags(noteId: string, userId: string, tagIds: string[]) {
+    const note = await this.prisma.note.findUnique({ where: { id: noteId } });
+
+    if (!note || note.userId !== userId) {
+      throw new NotFoundException('Note not found');
+    }
+
+    const uniqueTagIds = [...new Set(tagIds)];
+
+    if (uniqueTagIds.length > 0) {
+      const tags = await this.prisma.tag.findMany({
+        where: {
+          id: { in: uniqueTagIds },
+        },
+        select: { id: true, userId: true },
+      });
+
+      if (
+        tags.length !== uniqueTagIds.length ||
+        tags.some((tag) => tag.userId !== userId)
+      ) {
+        throw new NotFoundException('Tag not found');
+      }
+    }
+
+    await this.prisma.noteTag.deleteMany({ where: { noteId } });
+
+    if (uniqueTagIds.length > 0) {
+      await this.prisma.noteTag.createMany({
+        data: uniqueTagIds.map((tagId) => ({ noteId, tagId })),
+      });
+    }
+
+    return this.prisma.note.findUnique({
+      where: { id: noteId },
+      include: {
+        noteTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateNoteProject(
+    noteId: string,
+    userId: string,
+    projectId: string | null
+  ) {
     const note = await this.prisma.note.findUnique({ where: { id: noteId } });
 
     if (!note || note.userId !== userId) {

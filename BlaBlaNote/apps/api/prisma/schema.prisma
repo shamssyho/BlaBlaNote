@@ -19,6 +19,7 @@ model Note {
   audioUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  noteTags    NoteTag[]
 
   @@index([projectId])
 }
@@ -43,10 +44,36 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   notes         Note[]
+  tags          Tag[]
   projects      Project[]
   blogPosts     BlogPost[]
   refreshTokens RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags  NoteTag[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([userId, slug])
+  @@index([userId])
+}
+
+model NoteTag {
+  noteId String
+  tagId  String
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+  @@index([noteId])
+  @@index([tagId])
 }
 
 model BlogCategory {
