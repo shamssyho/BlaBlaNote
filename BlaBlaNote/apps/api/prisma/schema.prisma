@@ -141,19 +141,23 @@ model Project {
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String   @unique
-  rememberMe Boolean @default(false)
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash         String        @unique
+  sessionId         String
+  userAgent         String?
+  ipAddress         String?
+  rememberMe        Boolean       @default(false)
   replacedByTokenId String?
   replacedByToken   RefreshToken? @relation("RefreshTokenRotation", fields: [replacedByTokenId], references: [id])
   previousToken     RefreshToken[] @relation("RefreshTokenRotation")
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  createdAt         DateTime      @default(now())
 
   @@index([userId])
+  @@index([sessionId])
   @@index([expiresAt])
 }
 
