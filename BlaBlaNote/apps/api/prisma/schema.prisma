@@ -14,6 +14,9 @@ model Note {
   projectId   String?
   project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   text        String
+  transcriptText String?
+  status      NoteStatus @default(UPLOADED)
+  errorMessage String?
   summary     String?
   translation String?
   audioUrl    String?
@@ -158,4 +161,12 @@ enum UserStatus {
   SUSPENDED
   PENDING
   DELETED
+}
+
+enum NoteStatus {
+  UPLOADED
+  TRANSCRIBING
+  SUMMARIZING
+  READY
+  FAILED
 }

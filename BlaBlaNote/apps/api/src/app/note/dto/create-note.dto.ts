@@ -1,10 +1,11 @@
 import { IsString, IsOptional } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateNoteDto {
-  @ApiProperty({ description: 'The text content of the note' })
+  @ApiPropertyOptional({ description: 'The text content of the note' })
+  @IsOptional()
   @IsString()
-  text: string;
+  text?: string;
 
   @ApiPropertyOptional({
     description: 'Optional audio URL associated with the note',

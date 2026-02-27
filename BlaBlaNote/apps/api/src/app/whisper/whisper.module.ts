@@ -28,5 +28,6 @@ import { DiscordModule } from '../discord/discord.module';
   ],
   controllers: [WhisperController],
   providers: [WhisperService],
+  exports: [WhisperService],
 })
 export class WhisperModule {}
