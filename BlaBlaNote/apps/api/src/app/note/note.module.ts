@@ -6,10 +6,12 @@ import { AuthModule } from '../auth/auth.module';
 import { DiscordModule } from '../discord/discord.module';
 import { ProjectModule } from '../project/project.module';
 import { WhisperModule } from '../whisper/whisper.module';
+import { PublicNoteController } from './public-note.controller';
+import { ShareController } from './share.controller';
 
 @Module({
   imports: [PrismaModule, AuthModule, DiscordModule, ProjectModule, WhisperModule],
-  controllers: [NoteController],
+  controllers: [NoteController, PublicNoteController, ShareController],
   providers: [NoteService],
 })
 export class NoteModule {}
