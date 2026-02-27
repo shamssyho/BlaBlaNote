@@ -55,6 +55,8 @@ export class NoteController {
   @Patch(':id/project')
   @ApiOperation({ summary: 'Attach note to a project or remove it' })
   @ApiResponse({ status: 200, description: 'Note project updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Note or project not found' })
   async updateNoteProject(
     @Param('id') id: string,
     @Body() dto: UpdateNoteProjectDto,

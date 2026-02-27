@@ -19,6 +19,8 @@ model Note {
   audioUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
 }
 
 model User {
@@ -78,7 +80,7 @@ model BlogPost {
 }
 
 model Project {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   name      String
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
