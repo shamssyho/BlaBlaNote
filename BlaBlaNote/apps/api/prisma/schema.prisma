@@ -26,8 +26,16 @@ model User {
   email         String         @unique
   password      String
   role          Role           @default(USER)
+  status        UserStatus     @default(PENDING)
   termsAcceptedAt DateTime?
   termsVersion   String?
+  lastLoginAt   DateTime?
+  suspendedAt   DateTime?
+  deletedAt     DateTime?
+  plan          String?
+  priceCents    Int?
+  currency      String?
+  billingStatus String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   notes         Note[]
@@ -68,4 +76,11 @@ model PasswordResetToken {
 enum Role {
   USER
   ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+  DELETED
 }

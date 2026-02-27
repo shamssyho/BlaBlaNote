@@ -5,9 +5,14 @@ import { useNavigate, usePathname } from './router';
 
 interface ProtectedRouteProps extends PropsWithChildren {
   redirectTo: string;
+  requiredRole?: 'ADMIN' | 'USER';
 }
 
-export function ProtectedRoute({ children, redirectTo }: ProtectedRouteProps) {
+export function ProtectedRoute({
+  children,
+  redirectTo,
+  requiredRole,
+}: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
   const pathname = usePathname();
@@ -25,11 +30,29 @@ export function ProtectedRoute({ children, redirectTo }: ProtectedRouteProps) {
       pathname !== '/terms-consent'
     ) {
       navigate('/terms-consent', { replace: true });
+      return;
     }
-  }, [isAuthenticated, isLoading, navigate, pathname, redirectTo, user?.termsAcceptedAt]);
+
+    if (!isLoading && isAuthenticated && requiredRole && user?.role !== requiredRole) {
+      navigate('/home', { replace: true });
+    }
+  }, [
+    isAuthenticated,
+    isLoading,
+    navigate,
+    pathname,
+    redirectTo,
+    requiredRole,
+    user?.role,
+    user?.termsAcceptedAt,
+  ]);
 
   if (isLoading || !isAuthenticated) {
     return <Loader label="Checking session..." />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Loader label="Redirecting..." />;
   }
 
   return <>{children}</>;

@@ -1,0 +1,13 @@
+-- CreateEnum
+CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'SUSPENDED', 'PENDING', 'DELETED');
+
+-- AlterTable
+ALTER TABLE "User"
+ADD COLUMN "status" "UserStatus" NOT NULL DEFAULT 'PENDING',
+ADD COLUMN "lastLoginAt" TIMESTAMP(3),
+ADD COLUMN "suspendedAt" TIMESTAMP(3),
+ADD COLUMN "deletedAt" TIMESTAMP(3),
+ADD COLUMN "plan" TEXT,
+ADD COLUMN "priceCents" INTEGER,
+ADD COLUMN "currency" TEXT,
+ADD COLUMN "billingStatus" TEXT;
