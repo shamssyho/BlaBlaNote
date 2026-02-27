@@ -8,6 +8,9 @@ export const notesApi = {
   getById(id: string) {
     return http.get<Note>(`/notes/${id}`).then((res) => res.data);
   },
+  create(payload: { text: string }) {
+    return http.post<Note>('/notes', payload).then((res) => res.data);
+  },
   createAudioNote(file: File) {
     const formData = new FormData();
     formData.append('file', file);
@@ -22,6 +25,11 @@ export const notesApi = {
   },
   delete(id: string) {
     return http.delete(`/notes/${id}`).then((res) => res.data);
+  },
+  updateProject(id: string, projectId: string | null) {
+    return http
+      .patch<Note>(`/notes/${id}/project`, { projectId })
+      .then((res) => res.data);
   },
   share(id: string, payload: ShareNotePayload) {
     return http.post(`/notes/${id}/share`, payload).then((res) => res.data);

@@ -4,6 +4,7 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 import { Twilio } from 'twilio';
 import { DiscordService } from '../discord/discord.service';
+import { ProjectService } from '../project/project.service';
 
 @Injectable()
 export class NoteService {
@@ -11,7 +12,8 @@ export class NoteService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly discord: DiscordService
+    private readonly discord: DiscordService,
+    private readonly projectService: ProjectService
   ) {
     const defaultClient = SibApiV3Sdk.ApiClient.instance;
     const apiKey = defaultClient.authentications['api-key'];
@@ -113,5 +115,22 @@ ${note.text || 'Not available'}
     }
 
     return { success: false, message: 'Unsupported method' };
+  }
+
+  async updateNoteProject(noteId: string, userId: string, projectId: string | null) {
+    const note = await this.prisma.note.findUnique({ where: { id: noteId } });
+
+    if (!note || note.userId !== userId) {
+      throw new NotFoundException('Note not found');
+    }
+
+    if (projectId) {
+      await this.projectService.ensureProjectOwnership(projectId, userId);
+    }
+
+    return this.prisma.note.update({
+      where: { id: noteId },
+      data: { projectId },
+    });
   }
 }

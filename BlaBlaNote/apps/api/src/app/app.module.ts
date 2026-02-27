@@ -8,6 +8,7 @@ import { NoteModule } from './note/note.module';
 import { WhisperModule } from './whisper/whisper.module';
 import { DiscordModule } from './discord/discord.module';
 import { AdminModule } from './admin/admin.module';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AdminModule } from './admin/admin.module';
     WhisperModule,
     DiscordModule,
     AdminModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [AppService],
