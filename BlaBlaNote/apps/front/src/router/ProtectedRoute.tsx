@@ -57,5 +57,5 @@ export function ProtectedRoute({
     return <Loader label="Redirecting..." />;
   }
 
-  return <>{children}</>;
+  return children;
 }
