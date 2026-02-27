@@ -42,8 +42,39 @@ model User {
   updatedAt     DateTime       @updatedAt
   notes         Note[]
   projects      Project[]
+  blogPosts     BlogPost[]
   refreshTokens RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+}
+
+model BlogCategory {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  posts     BlogPost[]
+}
+
+model BlogPost {
+  id         String        @id @default(cuid())
+  title      String
+  slug       String        @unique
+  excerpt    String
+  content    String
+  coverImage String?
+  published  Boolean       @default(false)
+  authorId   String
+  author     User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([published])
+  @@index([createdAt])
 }
 
 model Project {

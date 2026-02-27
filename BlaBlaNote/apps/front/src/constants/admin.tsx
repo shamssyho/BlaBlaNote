@@ -69,6 +69,8 @@ export const ADMIN_NAV_ITEMS: AdminRouteItem[] = [
   { label: 'Dashboard', description: 'Overview and quick links', to: '/admin' },
   { label: 'Users', description: 'Manage accounts and status', to: '/admin/users' },
   { label: 'Notes', description: 'Monitor note activity', to: '/admin/notes' },
+  { label: 'Blog', description: 'Manage posts and publish state', to: '/admin/blog' },
+  { label: 'Blog Categories', description: 'Manage blog categories', to: '/admin/blog/categories' },
   { label: 'Billing', description: 'Plans and revenue insights', to: '/admin/billing' },
 ];
 
@@ -86,6 +88,20 @@ export const ADMIN_DASHBOARD_MODULES: AdminModule[] = [
     ctaLabel: 'Open notes monitoring',
     to: '/admin/notes',
     icon: <NotesIcon />,
+  },
+  {
+    title: 'Blog Management',
+    description: 'Create posts, edit drafts, and control publishing from one dashboard.',
+    ctaLabel: 'Open blog management',
+    to: '/admin/blog',
+    icon: <NotesIcon />,
+  },
+  {
+    title: 'Blog Categories',
+    description: 'Manage category taxonomy used for blog filtering and organization.',
+    ctaLabel: 'Open categories manager',
+    to: '/admin/blog/categories',
+    icon: <ShieldIcon />,
   },
   {
     title: 'Subscription & Billing',
