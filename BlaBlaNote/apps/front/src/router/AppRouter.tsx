@@ -12,6 +12,8 @@ import { ResetPasswordPage } from '../pages/ResetPasswordPage';
 import { TermsPage } from '../pages/TermsPage';
 import { TermsConsentPage } from '../pages/TermsConsentPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
+import { AdminDashboard } from '../pages/admin/AdminDashboard';
+import { ROLES } from '../constants/auth';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -98,9 +100,17 @@ function RoutedApp() {
   }
 
 
+  if (path === '/admin') {
+    return (
+      <ProtectedRoute redirectTo="/login" requiredRole={ROLES.ADMIN}>
+        <AdminDashboard />
+      </ProtectedRoute>
+    );
+  }
+
   if (path === '/admin/users') {
     return (
-      <ProtectedRoute redirectTo="/login" requiredRole="ADMIN">
+      <ProtectedRoute redirectTo="/login" requiredRole={ROLES.ADMIN}>
         <AppLayout>
           <AdminUsersPage />
         </AppLayout>
