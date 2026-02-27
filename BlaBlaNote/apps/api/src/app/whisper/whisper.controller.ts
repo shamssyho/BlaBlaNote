@@ -62,7 +62,7 @@ export class WhisperController {
     @UploadedFile() file: Express.Multer.File,
     @Req() req: Request
   ) {
-    const userId = req.user['sub'];
+    const userId = req.user['id'];
     return this.whisperService.transcribeAudio(file.path, userId);
   }
 }

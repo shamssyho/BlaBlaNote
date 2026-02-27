@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { NoteStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
@@ -7,6 +7,7 @@ import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 import { Twilio } from 'twilio';
 import { DiscordService } from '../discord/discord.service';
 import { ProjectService } from '../project/project.service';
+import { WhisperService } from '../whisper/whisper.service';
 
 @Injectable()
 export class NoteService {
@@ -15,7 +16,8 @@ export class NoteService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly discord: DiscordService,
-    private readonly projectService: ProjectService
+    private readonly projectService: ProjectService,
+    private readonly whisperService: WhisperService
   ) {
     const defaultClient = SibApiV3Sdk.ApiClient.instance;
     const apiKey = defaultClient.authentications['api-key'];
@@ -101,15 +103,42 @@ export class NoteService {
     return { items, page, pageSize, total };
   }
 
+  async getNoteById(id: string, userId: string) {
+    const note = await this.prisma.note.findFirst({
+      where: { id, userId },
+      include: {
+        noteTags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
+    return note;
+  }
+
   async createNote(dto: CreateNoteDto, userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     const note = await this.prisma.note.create({
       data: {
-        ...dto,
         userId,
+        text: dto.text ?? '',
+        audioUrl: dto.audioUrl,
+        status: dto.audioUrl ? NoteStatus.UPLOADED : NoteStatus.READY,
+        errorMessage: null,
+        transcriptText: dto.text ?? null,
       },
     });
+
+    if (dto.audioUrl) {
+      await this.whisperService.processNoteAudio(note.id, userId, dto.audioUrl);
+    }
 
     await this.discord.sendWebhook({
       username: `${user.firstName} ${user.lastName}`,
@@ -118,7 +147,44 @@ export class NoteService {
       date: new Date().toISOString(),
     });
 
-    return note;
+    return this.getNoteById(note.id, userId);
+  }
+
+  async retryProcessing(noteId: string, userId: string) {
+    const note = await this.prisma.note.findFirst({
+      where: { id: noteId, userId },
+    });
+
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
+    if (note.audioUrl) {
+      await this.prisma.note.update({
+        where: { id: noteId },
+        data: {
+          status: NoteStatus.UPLOADED,
+          errorMessage: null,
+        },
+      });
+
+      return this.whisperService.processNoteAudio(noteId, userId, note.audioUrl);
+    }
+
+    const transcript = note.transcriptText || note.text;
+
+    if (!transcript) {
+      await this.prisma.note.update({
+        where: { id: noteId },
+        data: {
+          status: NoteStatus.FAILED,
+          errorMessage: 'No transcript or audio available for retry',
+        },
+      });
+      throw new NotFoundException('No transcript or audio available for retry');
+    }
+
+    return this.whisperService.processNoteSummary(noteId, userId, transcript);
   }
 
   async shareNote(id: string, method: string, to: string, type: string) {

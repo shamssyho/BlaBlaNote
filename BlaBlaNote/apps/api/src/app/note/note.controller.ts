@@ -17,6 +17,7 @@ import { UpdateNoteProjectDto } from './dto/update-note-project.dto';
 import { ReplaceNoteTagsDto } from './dto/replace-note-tags.dto';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import { GetNotesResponseDto } from './dto/get-notes-response.dto';
+import { NoteProcessingStatusDto } from './dto/note-processing-status.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -55,11 +56,25 @@ export class NoteController {
   })
   @ApiQuery({ name: 'dateFrom', required: false, type: String })
   @ApiQuery({ name: 'dateTo', required: false, type: String })
-  @ApiResponse({ status: 200, description: 'Paginated notes list', type: GetNotesResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated notes list',
+    type: GetNotesResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMyNotes(@Req() req: Request, @Query() query: GetNotesQueryDto) {
     const user = req.user as AuthUser;
     return this.noteService.getNotesByUser(user.id, query);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get one note with processing status details' })
+  @ApiResponse({ status: 200, description: 'Note fetched successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Note not found' })
+  async getNoteById(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.noteService.getNoteById(id, user.id);
   }
 
   @Post()
@@ -69,6 +84,20 @@ export class NoteController {
   async createNote(@Body() dto: CreateNoteDto, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.noteService.createNote(dto, user.id);
+  }
+
+  @Post(':id/retry')
+  @ApiOperation({ summary: 'Retry transcription or summarization for a note' })
+  @ApiResponse({
+    status: 200,
+    description: 'Note processing retried successfully',
+    type: NoteProcessingStatusDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Note not found' })
+  async retryNote(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.noteService.retryProcessing(id, user.id);
   }
 
   @Patch(':id/project')

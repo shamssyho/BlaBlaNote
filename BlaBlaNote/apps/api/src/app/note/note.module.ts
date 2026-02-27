@@ -5,9 +5,10 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { DiscordModule } from '../discord/discord.module';
 import { ProjectModule } from '../project/project.module';
+import { WhisperModule } from '../whisper/whisper.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, DiscordModule, ProjectModule],
+  imports: [PrismaModule, AuthModule, DiscordModule, ProjectModule, WhisperModule],
   controllers: [NoteController],
   providers: [NoteService],
 })
