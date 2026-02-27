@@ -16,6 +16,7 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteProjectDto } from './dto/update-note-project.dto';
 import { ReplaceNoteTagsDto } from './dto/replace-note-tags.dto';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
+import { GetNotesResponseDto } from './dto/get-notes-response.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -41,6 +42,10 @@ export class NoteController {
 
   @Get()
   @ApiOperation({ summary: 'Get all notes for the current user' })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, example: 20 })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'projectId', required: false, type: String })
   @ApiQuery({
     name: 'tagIds',
     required: false,
@@ -48,7 +53,9 @@ export class NoteController {
     description: 'Filter notes that contain all provided tags',
     isArray: true,
   })
-  @ApiResponse({ status: 200, description: 'List of notes' })
+  @ApiQuery({ name: 'dateFrom', required: false, type: String })
+  @ApiQuery({ name: 'dateTo', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'Paginated notes list', type: GetNotesResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getMyNotes(@Req() req: Request, @Query() query: GetNotesQueryDto) {
     const user = req.user as AuthUser;
