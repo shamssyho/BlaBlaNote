@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -12,7 +12,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { GetAdminUsersQueryDto } from './dto/get-admin-users-query.dto';
 import { AdminUsersService } from './users.service';
 
-@ApiTags('Admin Users')
+@ApiTags('Admin')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
@@ -48,5 +48,14 @@ export class AdminUsersController {
   @ApiResponse({ status: 403, description: 'Forbidden - Admin only' })
   getUsers(@Query() query: GetAdminUsersQueryDto) {
     return this.adminUsersService.getUsers(query);
+  }
+
+  @Patch(':id/block')
+  @ApiOperation({ summary: 'Toggle user blocked status (Admin only)' })
+  @ApiResponse({ status: 200, description: 'User blocked status updated' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Admin only' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  toggleBlock(@Param('id') id: string) {
+    return this.adminUsersService.toggleBlock(id);
   }
 }

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, UserStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { GetAdminUsersQueryDto } from './dto/get-admin-users-query.dto';
 
@@ -167,6 +167,35 @@ export class AdminUsersService {
       page,
       pageSize,
       total,
+    };
+  }
+
+
+  async toggleBlock(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const status =
+      user.status === UserStatus.SUSPENDED
+        ? UserStatus.ACTIVE
+        : UserStatus.SUSPENDED;
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { status },
+      select: { id: true, status: true },
+    });
+
+    return {
+      id: updated.id,
+      status: updated.status,
+      blocked: updated.status === UserStatus.SUSPENDED,
     };
   }
 
