@@ -3,9 +3,11 @@ import { Loader } from '../components/ui/Loader';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, usePathname } from './router';
 
+import type { AppRole } from '../constants/auth';
+
 interface ProtectedRouteProps extends PropsWithChildren {
   redirectTo: string;
-  requiredRole?: 'ADMIN' | 'USER';
+  requiredRole?: AppRole;
 }
 
 export function ProtectedRoute({
