@@ -18,6 +18,10 @@ import { TermsConsentPage } from '../pages/TermsConsentPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { AdminPlaceholderPage } from '../pages/admin/AdminPlaceholderPage';
+import { BlogListPage } from '../pages/BlogListPage';
+import { BlogDetailPage } from '../pages/BlogDetailPage';
+import { AdminBlogPage } from '../pages/admin/AdminBlogPage';
+import { AdminBlogCategoriesPage } from '../pages/admin/AdminBlogCategoriesPage';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -44,6 +48,14 @@ function renderAdminPage(path: string) {
         description="Track note activity, identify usage trends, and prepare analytics rollouts."
       />
     );
+  }
+
+  if (path === '/admin/blog') {
+    return <AdminBlogPage />;
+  }
+
+  if (path === '/admin/blog/categories') {
+    return <AdminBlogCategoriesPage />;
   }
 
   if (path === '/admin/billing') {
@@ -91,6 +103,15 @@ function RoutedApp() {
 
   if (path === '/') {
     return <LandingPage />;
+  }
+
+
+  if (path === '/blog') {
+    return (
+      <AppLayout>
+        <BlogListPage />
+      </AppLayout>
+    );
   }
 
   if (path === '/dashboard' || path === '/home') {
@@ -152,6 +173,15 @@ function RoutedApp() {
     );
   }
 
+
+  const blogMatch = matchPath('/blog/:slug', path);
+  if (blogMatch) {
+    return (
+      <AppLayout>
+        <BlogDetailPage slug={blogMatch.slug} />
+      </AppLayout>
+    );
+  }
 
   const projectMatch = matchPath('/projects/:id', path);
   if (projectMatch) {
