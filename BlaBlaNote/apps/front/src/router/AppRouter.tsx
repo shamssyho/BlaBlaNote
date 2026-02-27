@@ -1,4 +1,6 @@
 import { AppLayout } from '../layouts/AppLayout';
+import { AdminLayout } from '../layouts/AdminLayout';
+import { ROLES } from '../constants/auth';
 import { HomePage } from '../pages/Home';
 import { LandingPage } from '../pages/LandingPage';
 import { LoginPage } from '../pages/LoginPage';
@@ -13,7 +15,7 @@ import { TermsPage } from '../pages/TermsPage';
 import { TermsConsentPage } from '../pages/TermsConsentPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
-import { ROLES } from '../constants/auth';
+import { AdminPlaceholderPage } from '../pages/admin/AdminPlaceholderPage';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -22,6 +24,36 @@ function PlaceholderPage({ title }: { title: string }) {
       <p>This area is coming soon.</p>
     </section>
   );
+}
+
+function renderAdminPage(path: string) {
+  if (path === '/admin') {
+    return <AdminDashboard />;
+  }
+
+  if (path === '/admin/users') {
+    return <AdminUsersPage />;
+  }
+
+  if (path === '/admin/notes') {
+    return (
+      <AdminPlaceholderPage
+        title="Notes Monitoring"
+        description="Track note activity, identify usage trends, and prepare analytics rollouts."
+      />
+    );
+  }
+
+  if (path === '/admin/billing') {
+    return (
+      <AdminPlaceholderPage
+        title="Subscription & Billing"
+        description="Review plans and revenue analytics in this dedicated billing workspace."
+      />
+    );
+  }
+
+  return <AdminDashboard />;
 }
 
 function RoutedApp() {
@@ -99,21 +131,10 @@ function RoutedApp() {
     );
   }
 
-
-  if (path === '/admin') {
+  if (path.startsWith('/admin')) {
     return (
       <ProtectedRoute redirectTo="/login" requiredRole={ROLES.ADMIN}>
-        <AdminDashboard />
-      </ProtectedRoute>
-    );
-  }
-
-  if (path === '/admin/users') {
-    return (
-      <ProtectedRoute redirectTo="/login" requiredRole={ROLES.ADMIN}>
-        <AppLayout>
-          <AdminUsersPage />
-        </AppLayout>
+        <AdminLayout>{renderAdminPage(path)}</AdminLayout>
       </ProtectedRoute>
     );
   }
