@@ -8,6 +8,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'dotenv/config';
+import { requestLoggingMiddleware } from './app/observability/request-logging.middleware';
 
 async function bootstrap() {
   const config = new DocumentBuilder()
@@ -18,6 +19,8 @@ async function bootstrap() {
     .build();
 
   const app = await NestFactory.create(AppModule);
+
+  app.use(requestLoggingMiddleware);
 
   app.useGlobalPipes(
     new ValidationPipe({
