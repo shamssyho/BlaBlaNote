@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
@@ -28,31 +29,67 @@ export class NoteService {
 
   async getNotesByUser(userId: string, query: GetNotesQueryDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    const notes = await this.prisma.note.findMany({
-      where: {
-        userId,
-        ...(query.tagIds?.length
-          ? {
-              AND: query.tagIds.map((tagId) => ({
-                noteTags: {
-                  some: {
-                    tagId,
-                    tag: { userId },
-                  },
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    const where: Prisma.NoteWhereInput = {
+      userId,
+      ...(query.search
+        ? {
+            OR: [
+              {
+                text: {
+                  contains: query.search,
+                  mode: 'insensitive',
                 },
-              })),
-            }
-          : {}),
-      },
-      include: {
-        noteTags: {
-          include: {
-            tag: true,
+              },
+              {
+                summary: {
+                  contains: query.search,
+                  mode: 'insensitive',
+                },
+              },
+            ],
+          }
+        : {}),
+      ...(query.projectId ? { projectId: query.projectId } : {}),
+      ...(query.dateFrom || query.dateTo
+        ? {
+            createdAt: {
+              ...(query.dateFrom ? { gte: new Date(query.dateFrom) } : {}),
+              ...(query.dateTo ? { lte: new Date(query.dateTo) } : {}),
+            },
+          }
+        : {}),
+      ...(query.tagIds?.length
+        ? {
+            AND: query.tagIds.map((tagId) => ({
+              noteTags: {
+                some: {
+                  tagId,
+                  tag: { userId },
+                },
+              },
+            })),
+          }
+        : {}),
+    };
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.note.findMany({
+        where,
+        include: {
+          noteTags: {
+            include: {
+              tag: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.note.count({ where }),
+    ]);
 
     await this.discord.sendWebhook({
       username: `${user.firstName} ${user.lastName}`,
@@ -61,7 +98,7 @@ export class NoteService {
       date: new Date().toISOString(),
     });
 
-    return notes;
+    return { items, page, pageSize, total };
   }
 
   async createNote(dto: CreateNoteDto, userId: string) {
