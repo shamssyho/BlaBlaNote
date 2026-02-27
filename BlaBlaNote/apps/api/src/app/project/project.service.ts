@@ -7,11 +7,9 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 export class ProjectService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getProjects(userId: string, isAdmin: boolean, scope: 'mine' | 'all' = 'mine') {
-    const where = isAdmin && scope === 'all' ? {} : { userId };
-
+  async getProjects(userId: string) {
     const projects = await this.prisma.project.findMany({
-      where,
+      where: { userId },
       include: {
         _count: {
           select: { notes: true },
@@ -75,32 +73,8 @@ export class ProjectService {
 
   async deleteProject(userId: string, id: string) {
     await this.ensureProjectOwnership(id, userId);
-
     await this.prisma.project.delete({ where: { id } });
-
     return { success: true };
-  }
-
-  async getProjectNotes(userId: string, id: string) {
-    await this.ensureProjectOwnership(id, userId);
-
-    const project = await this.prisma.project.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        notes: {
-          where: { userId },
-          orderBy: { createdAt: 'desc' },
-        },
-      },
-    });
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    return project;
   }
 
   async ensureProjectOwnership(projectId: string, userId: string) {
