@@ -28,6 +28,7 @@ export function AppHeader() {
     { label: t('nav.home'), to: '/home' },
     { label: t('nav.notes'), to: '/notes' },
     { label: t('nav.createNote'), to: '/notes/new' },
+    { label: 'Projects', to: '/projects' },
   ] as const;
 
   const initials = [user?.firstName, user?.lastName]

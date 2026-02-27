@@ -7,6 +7,7 @@ export interface Note {
   summary: string | null;
   translation: string | null;
   audioUrl: string | null;
+  projectId: string | null;
   createdAt: string;
   updatedAt: string;
 }

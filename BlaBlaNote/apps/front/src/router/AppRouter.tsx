@@ -7,6 +7,8 @@ import { LoginPage } from '../pages/LoginPage';
 import { NoteDetailPage } from '../pages/NoteDetailPage';
 import { NotesListPage } from '../pages/NotesListPage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { ProjectsPage } from '../pages/ProjectsPage';
+import { ProjectDetailPage } from '../pages/ProjectDetailPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { matchPath, RouterProvider, usePathname } from './router';
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
@@ -111,6 +113,17 @@ function RoutedApp() {
     );
   }
 
+
+  if (path === '/projects') {
+    return (
+      <ProtectedRoute redirectTo="/login">
+        <AppLayout>
+          <ProjectsPage />
+        </AppLayout>
+      </ProtectedRoute>
+    );
+  }
+
   if (path === '/profile') {
     return (
       <ProtectedRoute redirectTo="/login">
@@ -135,6 +148,18 @@ function RoutedApp() {
     return (
       <ProtectedRoute redirectTo="/login" requiredRole={ROLES.ADMIN}>
         <AdminLayout>{renderAdminPage(path)}</AdminLayout>
+      </ProtectedRoute>
+    );
+  }
+
+
+  const projectMatch = matchPath('/projects/:id', path);
+  if (projectMatch) {
+    return (
+      <ProtectedRoute redirectTo="/login">
+        <AppLayout>
+          <ProjectDetailPage projectId={projectMatch.id} />
+        </AppLayout>
       </ProtectedRoute>
     );
   }

@@ -6,10 +6,12 @@ import {
   UseGuards,
   Req,
   Get,
+  Patch,
 } from '@nestjs/common';
 import { NoteService } from './note.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { UpdateNoteProjectDto } from './dto/update-note-project.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -48,6 +50,18 @@ export class NoteController {
   async createNote(@Body() dto: CreateNoteDto, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.noteService.createNote(dto, user.id);
+  }
+
+  @Patch(':id/project')
+  @ApiOperation({ summary: 'Attach note to a project or remove it' })
+  @ApiResponse({ status: 200, description: 'Note project updated successfully' })
+  async updateNoteProject(
+    @Param('id') id: string,
+    @Body() dto: UpdateNoteProjectDto,
+    @Req() req: Request
+  ) {
+    const user = req.user as AuthUser;
+    return this.noteService.updateNoteProject(id, user.id, dto.projectId ?? null);
   }
 
   @Post(':id/share')
