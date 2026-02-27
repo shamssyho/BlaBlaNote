@@ -8,6 +8,7 @@ import { Twilio } from 'twilio';
 import { DiscordService } from '../discord/discord.service';
 import { ProjectService } from '../project/project.service';
 import { WhisperService } from '../whisper/whisper.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class NoteService {
@@ -240,6 +241,124 @@ ${note.text || 'Not available'}
     }
 
     return { success: false, message: 'Unsupported method' };
+  }
+
+  async createShareLink(
+    noteId: string,
+    userId: string,
+    expiresInHours: number,
+    allowSummary: boolean,
+    allowTranscript: boolean
+  ) {
+    const note = await this.prisma.note.findFirst({
+      where: { id: noteId, userId },
+    });
+
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
+    const rawToken = crypto.randomBytes(48).toString('hex');
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+    const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
+
+    await this.prisma.shareLink.create({
+      data: {
+        noteId,
+        createdByUserId: userId,
+        tokenHash,
+        expiresAt,
+        allowSummary,
+        allowTranscript,
+      },
+    });
+
+    const baseUrl = process.env.APP_URL || 'http://localhost:3001';
+    return {
+      publicUrl: `${baseUrl}/public/notes/${rawToken}`,
+      expiresAt,
+    };
+  }
+
+  async getPublicNoteByToken(rawToken: string) {
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+
+    const share = await this.prisma.shareLink.findFirst({
+      where: {
+        tokenHash,
+        expiresAt: { gt: new Date() },
+      },
+      include: {
+        note: {
+          select: {
+            id: true,
+            summary: true,
+            transcriptText: true,
+          },
+        },
+      },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share link not found');
+    }
+
+    return {
+      noteId: share.note.id,
+      ...(share.allowSummary ? { summary: share.note.summary ?? '' } : {}),
+      ...(share.allowTranscript
+        ? { transcriptText: share.note.transcriptText ?? share.note.summary ?? '' }
+        : {}),
+    };
+  }
+
+  async getShareHistory(noteId: string, userId: string) {
+    const note = await this.prisma.note.findFirst({
+      where: { id: noteId, userId },
+      select: { id: true },
+    });
+
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
+    return this.prisma.shareLink.findMany({
+      where: { noteId },
+      select: {
+        id: true,
+        expiresAt: true,
+        allowSummary: true,
+        allowTranscript: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async revokeShareLink(shareId: string, userId: string) {
+    const share = await this.prisma.shareLink.findFirst({
+      where: {
+        id: shareId,
+        note: {
+          userId,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share link not found');
+    }
+
+    await this.prisma.shareLink.delete({ where: { id: shareId } });
+
+    return { success: true };
   }
 
   async replaceNoteTags(noteId: string, userId: string, tagIds: string[]) {

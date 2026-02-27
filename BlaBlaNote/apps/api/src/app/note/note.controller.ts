@@ -18,6 +18,9 @@ import { ReplaceNoteTagsDto } from './dto/replace-note-tags.dto';
 import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import { GetNotesResponseDto } from './dto/get-notes-response.dto';
 import { NoteProcessingStatusDto } from './dto/note-processing-status.dto';
+import { CreateShareLinkDto } from './dto/create-share-link.dto';
+import { CreateShareLinkResponseDto } from './dto/create-share-link-response.dto';
+import { ShareHistoryItemDto } from './dto/share-history-item.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -161,4 +164,43 @@ export class NoteController {
     const { method, to, type } = body;
     return this.noteService.shareNote(id, method, to, type);
   }
+
+  @Post(':id/share-link')
+  @ApiOperation({ summary: 'Create a public share link for a note' })
+  @ApiResponse({
+    status: 201,
+    description: 'Share link created successfully',
+    type: CreateShareLinkResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Note not found' })
+  async createShareLink(
+    @Param('id') id: string,
+    @Body() dto: CreateShareLinkDto,
+    @Req() req: Request
+  ) {
+    const user = req.user as AuthUser;
+    return this.noteService.createShareLink(
+      id,
+      user.id,
+      dto.expiresInHours,
+      dto.allowSummary,
+      dto.allowTranscript
+    );
+  }
+
+  @Get(':id/shares')
+  @ApiOperation({ summary: 'Get share link history for a note' })
+  @ApiResponse({
+    status: 200,
+    description: 'Share links fetched successfully',
+    type: [ShareHistoryItemDto],
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Note not found' })
+  async getShareHistory(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.noteService.getShareHistory(id, user.id);
+  }
+
 }

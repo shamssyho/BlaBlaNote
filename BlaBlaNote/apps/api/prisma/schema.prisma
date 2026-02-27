@@ -23,6 +23,7 @@ model Note {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   noteTags    NoteTag[]
+  shareLinks  ShareLink[]
 
   @@index([projectId])
 }
@@ -52,6 +53,24 @@ model User {
   blogPosts     BlogPost[]
   refreshTokens RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  createdShareLinks ShareLink[] @relation("ShareLinkCreator")
+}
+
+model ShareLink {
+  id              String   @id @default(cuid())
+  noteId          String
+  note            Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  createdByUserId String
+  createdByUser   User     @relation("ShareLinkCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  tokenHash       String
+  expiresAt       DateTime
+  allowSummary    Boolean  @default(false)
+  allowTranscript Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([noteId])
+  @@index([tokenHash])
+  @@index([expiresAt])
 }
 
 model Tag {
