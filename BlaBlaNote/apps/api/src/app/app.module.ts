@@ -10,6 +10,7 @@ import { DiscordModule } from './discord/discord.module';
 import { AdminModule } from './admin/admin.module';
 import { ProjectModule } from './project/project.module';
 import { BlogModule } from './blog/blog.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { BlogModule } from './blog/blog.module';
     AdminModule,
     ProjectModule,
     BlogModule,
+    TagModule,
   ],
   controllers: [AppController],
   providers: [AppService],

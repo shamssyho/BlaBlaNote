@@ -7,15 +7,20 @@ import {
   Req,
   Get,
   Patch,
+  Put,
+  Query,
 } from '@nestjs/common';
 import { NoteService } from './note.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteProjectDto } from './dto/update-note-project.dto';
+import { ReplaceNoteTagsDto } from './dto/replace-note-tags.dto';
+import { GetNotesQueryDto } from './dto/get-notes-query.dto';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -36,11 +41,18 @@ export class NoteController {
 
   @Get()
   @ApiOperation({ summary: 'Get all notes for the current user' })
+  @ApiQuery({
+    name: 'tagIds',
+    required: false,
+    type: [String],
+    description: 'Filter notes that contain all provided tags',
+    isArray: true,
+  })
   @ApiResponse({ status: 200, description: 'List of notes' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getMyNotes(@Req() req: Request) {
+  async getMyNotes(@Req() req: Request, @Query() query: GetNotesQueryDto) {
     const user = req.user as AuthUser;
-    return this.noteService.getNotesByUser(user.id);
+    return this.noteService.getNotesByUser(user.id, query);
   }
 
   @Post()
@@ -54,7 +66,10 @@ export class NoteController {
 
   @Patch(':id/project')
   @ApiOperation({ summary: 'Attach note to a project or remove it' })
-  @ApiResponse({ status: 200, description: 'Note project updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Note project updated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Note or project not found' })
   async updateNoteProject(
@@ -63,7 +78,25 @@ export class NoteController {
     @Req() req: Request
   ) {
     const user = req.user as AuthUser;
-    return this.noteService.updateNoteProject(id, user.id, dto.projectId ?? null);
+    return this.noteService.updateNoteProject(
+      id,
+      user.id,
+      dto.projectId ?? null
+    );
+  }
+
+  @Put(':id/tags')
+  @ApiOperation({ summary: 'Replace tags of a note' })
+  @ApiResponse({ status: 200, description: 'Note tags replaced successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Note or tag not found' })
+  async replaceNoteTags(
+    @Param('id') id: string,
+    @Body() dto: ReplaceNoteTagsDto,
+    @Req() req: Request
+  ) {
+    const user = req.user as AuthUser;
+    return this.noteService.replaceNoteTags(id, user.id, dto.tagIds);
   }
 
   @Post(':id/share')
