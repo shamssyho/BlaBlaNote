@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { NoteModule } from './note/note.module';
 import { WhisperModule } from './whisper/whisper.module';
 import { DiscordModule } from './discord/discord.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DiscordModule } from './discord/discord.module';
     NoteModule,
     WhisperModule,
     DiscordModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

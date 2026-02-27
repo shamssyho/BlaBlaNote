@@ -129,6 +129,12 @@ export class AuthService {
 
   async login(email: string, password: string, rememberMe = false) {
     const user = await this.validateUser(email, password);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
     const accessToken = this.generateAccessToken(user);
     const rawRefreshToken = this.refreshTokenService.generateRawToken();
     const refreshExpiresAt = this.getRefreshExpiry(rememberMe);
