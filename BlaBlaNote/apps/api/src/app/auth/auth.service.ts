@@ -27,6 +27,8 @@ export class AuthService {
     string,
     { count: number; resetAt: number }
   >();
+  private readonly loginAttemptsByIp = new Map<string, { count: number; resetAt: number }>();
+  private readonly refreshAttemptsByIp = new Map<string, { count: number; resetAt: number }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -127,8 +129,18 @@ export class AuthService {
     return user;
   }
 
-  async login(email: string, password: string, rememberMe = false) {
-    const user = await this.validateUser(email, password);
+  async login(params: {
+    email: string;
+    password: string;
+    rememberMe?: boolean;
+    ip?: string;
+    userAgent?: string;
+  }) {
+    if (params.ip) {
+      this.hitRateLimit(params.ip, 5, 60_000, this.loginAttemptsByIp);
+    }
+
+    const user = await this.validateUser(params.email, params.password);
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -137,6 +149,7 @@ export class AuthService {
 
     const accessToken = this.generateAccessToken(user);
     const rawRefreshToken = this.refreshTokenService.generateRawToken();
+    const rememberMe = params.rememberMe ?? false;
     const refreshExpiresAt = this.getRefreshExpiry(rememberMe);
 
     await this.refreshTokenService.createToken({
@@ -144,6 +157,9 @@ export class AuthService {
       rawToken: rawRefreshToken,
       expiresAt: refreshExpiresAt,
       rememberMe,
+      sessionId: this.refreshTokenService.generateSessionId(),
+      ipAddress: params.ip,
+      userAgent: params.userAgent,
     });
 
     await this.discord.sendWebhook({
@@ -170,9 +186,17 @@ export class AuthService {
     };
   }
 
-  async refresh(rawRefreshToken: string) {
+  async refresh(params: {
+    rawRefreshToken: string;
+    ip?: string;
+    userAgent?: string;
+  }) {
+    if (params.ip) {
+      this.hitRateLimit(params.ip, 10, 60_000, this.refreshAttemptsByIp);
+    }
+
     const existingToken = await this.refreshTokenService.findActiveByRawToken(
-      rawRefreshToken
+      params.rawRefreshToken
     );
     if (!existingToken) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -190,6 +214,9 @@ export class AuthService {
       currentUserId: existingToken.userId,
       rememberMe: existingToken.rememberMe,
       expiresAt: this.getRefreshExpiry(existingToken.rememberMe),
+      sessionId: existingToken.sessionId,
+      ipAddress: params.ip,
+      userAgent: params.userAgent ?? existingToken.userAgent ?? undefined,
     });
 
     const accessToken = this.generateAccessToken(user);

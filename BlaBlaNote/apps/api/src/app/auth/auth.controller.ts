@@ -7,7 +7,13 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiTooManyRequestsResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -15,6 +21,12 @@ import { RegisterDto } from './dto/register.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { cookieConstants } from './auth.constants';
+import {
+  ErrorResponseDto,
+  LoginTokenResponseDto,
+  LogoutResponseDto,
+  RefreshTokenResponseDto,
+} from './dto/auth-token-response.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -44,6 +56,15 @@ export class AuthController {
     return decodeURIComponent(match.slice(name.length + 1));
   }
 
+  private getUserAgent(req: Request) {
+    const header = req.headers['user-agent'];
+    if (Array.isArray(header)) {
+      return header[0];
+    }
+
+    return header;
+  }
+
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201 })
@@ -54,10 +75,22 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'User login' })
-  @ApiResponse({ status: 200 })
-  @ApiResponse({ status: 401 })
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const data = await this.authService.login(dto.email, dto.password, dto.rememberMe);
+  @ApiResponse({ status: 200, type: LoginTokenResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiTooManyRequestsResponse({ type: ErrorResponseDto })
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Ip() ip: string,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const data = await this.authService.login({
+      email: dto.email,
+      password: dto.password,
+      rememberMe: dto.rememberMe,
+      ip,
+      userAgent: this.getUserAgent(req),
+    });
 
     res.cookie(
       cookieConstants.refreshTokenName,
@@ -65,17 +98,26 @@ export class AuthController {
       this.getRefreshCookieOptions(dto.rememberMe ? data.refresh_expires_at : undefined)
     );
 
-    return {
-      access_token: data.access_token,
-      user: data.user,
-    };
+    return data;
   }
 
   @Post('refresh')
   @HttpCode(200)
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  @ApiOperation({ summary: 'Refresh access and refresh tokens' })
+  @ApiResponse({ status: 200, type: RefreshTokenResponseDto })
+  @ApiUnauthorizedResponse({ type: ErrorResponseDto })
+  @ApiTooManyRequestsResponse({ type: ErrorResponseDto })
+  async refresh(
+    @Req() req: Request,
+    @Ip() ip: string,
+    @Res({ passthrough: true }) res: Response
+  ) {
     const refreshToken = this.getCookie(req, cookieConstants.refreshTokenName);
-    const data = await this.authService.refresh(refreshToken || '');
+    const data = await this.authService.refresh({
+      rawRefreshToken: refreshToken || '',
+      ip,
+      userAgent: this.getUserAgent(req),
+    });
 
     res.cookie(
       cookieConstants.refreshTokenName,
@@ -83,11 +125,13 @@ export class AuthController {
       this.getRefreshCookieOptions(data.refresh_expires_at)
     );
 
-    return { access_token: data.access_token };
+    return data;
   }
 
   @Post('logout')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Logout and revoke refresh token' })
+  @ApiResponse({ status: 200, type: LogoutResponseDto })
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = this.getCookie(req, cookieConstants.refreshTokenName);
     await this.authService.logout(refreshToken);
