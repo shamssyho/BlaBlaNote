@@ -1,9 +1,11 @@
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from '../router/router';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../types/api.types';
 
 export function LoginPage() {
+  const { t } = useTranslation('auth');
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -30,19 +32,13 @@ export function LoginPage() {
   return (
     <section className="auth-page">
       <form onSubmit={onSubmit} className="auth-form">
-        <h1>Login</h1>
-        <input
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Email"
-          required
-        />
+        <h1>{t('login.title')}</h1>
+        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t('login.email')} required />
         <input
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="Password"
+          placeholder={t('login.password')}
           required
         />
         <label>
@@ -51,17 +47,17 @@ export function LoginPage() {
             checked={rememberMe}
             onChange={(event) => setRememberMe(event.target.checked)}
           />{' '}
-          Remember me
+          {t('login.rememberMe')}
         </label>
         {error ? <p className="error-text">{error}</p> : null}
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
+          {isSubmitting ? t('login.submitting') : t('login.submit')}
         </button>
         <p>
-          <Link to="/forgot-password">Forgot password?</Link>
+          <Link to="/forgot-password">{t('login.forgotPassword')}</Link>
         </p>
         <p>
-          No account? <Link to="/register">Create one</Link>
+          {t('login.noAccount')} <Link to="/register">{t('login.createOne')}</Link>
         </p>
       </form>
     </section>

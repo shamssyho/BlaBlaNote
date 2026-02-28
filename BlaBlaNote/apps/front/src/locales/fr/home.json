@@ -1,0 +1,18 @@
+{
+  "welcomeBack": "Welcome back",
+  "dashboardFallback": "Your notes dashboard",
+  "description": "Capture ideas quickly, review recent recordings, and keep your note flow organized.",
+  "quickActions": "Quick actions",
+  "searchNotes": "Search notes",
+  "totalNotes": "Total notes",
+  "lastUpdated": "Last updated",
+  "recentNotes": "Recent notes",
+  "viewAll": "View all",
+  "loadingNotes": "Loading notes...",
+  "noNotesYet": "No notes yet",
+  "emptyStateDescription": "Start your workspace by creating your first note.",
+  "createFirstNote": "Create your first note",
+  "openNoteCreatedAt": "Open note created at {{date}}",
+  "summaryPending": "Summary pending...",
+  "noDate": "—"
+}

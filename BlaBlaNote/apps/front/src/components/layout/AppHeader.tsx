@@ -1,34 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../lib/cn';
-import { persistLanguage } from '../../i18n/detectLanguage';
 import { Link, NavLink, usePathname } from '../../router/router';
 
 const navLinkClassName =
   'inline-flex items-center rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2';
 const navLinkActiveClassName = `${navLinkClassName} bg-slate-200 text-slate-900`;
 
-const LANGUAGE_OPTIONS = [
-  { code: 'fr', label: 'FR' },
-  { code: 'en', label: 'EN' },
-  { code: 'ar', label: 'AR' },
-] as const;
-
 export function AppHeader() {
   const pathname = usePathname();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation('common');
   const { logout, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
-  const isRtl = i18n.language.startsWith('ar');
+  const isRtl = false;
 
   const navItems = [
     { label: t('nav.home'), to: '/home' },
     { label: t('nav.notes'), to: '/notes' },
     { label: t('nav.createNote'), to: '/notes/new' },
-    { label: 'Projects', to: '/projects' },
+    { label: t('nav.projects'), to: '/projects' },
   ] as const;
 
   const initials = [user?.firstName, user?.lastName]
@@ -54,11 +48,6 @@ export function AppHeader() {
     setMobileMenuOpen(false);
     setUserMenuOpen(false);
   }, [pathname]);
-
-  function onLanguageChange(language: 'fr' | 'en' | 'ar') {
-    persistLanguage(language);
-    void i18n.changeLanguage(language);
-  }
 
   const sharedRouteExists = false;
 
@@ -105,25 +94,7 @@ export function AppHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 rounded-md border border-slate-300 bg-white p-1" aria-label={t('nav.language')}>
-            {LANGUAGE_OPTIONS.map((option) => {
-              const isActive = i18n.language.startsWith(option.code);
-              return (
-                <button
-                  key={option.code}
-                  type="button"
-                  className={cn(
-                    'rounded px-2 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-1',
-                    isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
-                  )}
-                  onClick={() => onLanguageChange(option.code)}
-                  aria-pressed={isActive}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
+          <LanguageSwitcher />
 
           <div className="relative" ref={userMenuRef}>
             <button

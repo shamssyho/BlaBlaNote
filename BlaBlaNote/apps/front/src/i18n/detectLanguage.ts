@@ -1,4 +1,4 @@
-export const SUPPORTED_LANGUAGES = ['fr', 'en', 'ar'] as const;
+export const SUPPORTED_LANGUAGES = ['en', 'fr'] as const;
 
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
@@ -40,7 +40,7 @@ export function getDeviceLanguage(): AppLanguage {
     }
   }
 
-  return 'fr';
+  return 'en';
 }
 
 export function getInitialLanguage(): AppLanguage {
@@ -51,11 +51,11 @@ export function getInitialLanguage(): AppLanguage {
 }
 
 export function applyDocumentDirection(language: AppLanguage) {
-  document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.dir = 'ltr';
   document.documentElement.lang = language;
 }
 
 export function persistLanguage(language: string) {
-  const normalizedLanguage = resolveSupportedLanguage(language) ?? 'fr';
+  const normalizedLanguage = resolveSupportedLanguage(language) ?? 'en';
   localStorage.setItem(APP_LANGUAGE_STORAGE_KEY, normalizedLanguage);
 }

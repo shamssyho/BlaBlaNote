@@ -1,4 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import { profileApi } from '../api/profileApi';
 import { FormMessage } from '../components/profile/FormMessage';
 import { SettingsField } from '../components/profile/SettingsField';
@@ -8,6 +10,7 @@ import { ApiError } from '../types/api.types';
 const THEME_STORAGE_KEY = 'blablanote-theme';
 
 export function SettingsPage() {
+  const { t } = useTranslation('settings');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [language, setLanguage] = useState('en');
@@ -52,7 +55,8 @@ export function SettingsPage() {
       });
       localStorage.setItem(THEME_STORAGE_KEY, user.theme);
       document.documentElement.dataset.theme = user.theme;
-      setSuccessMessage('Settings saved successfully.');
+      setSuccessMessage(t('saved'));
+      await i18n.changeLanguage(user.language);
     } catch (error) {
       setErrorMessage((error as ApiError).message);
     } finally {
@@ -61,41 +65,40 @@ export function SettingsPage() {
   }
 
   if (isLoading) {
-    return <Loader label="Loading settings..." />;
+    return <Loader label={t('loading')} />;
   }
 
   return (
     <section className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+      <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
       <FormMessage type="success" message={successMessage} />
       <FormMessage type="error" message={errorMessage} />
 
       <form className="space-y-4 rounded-xl border border-slate-200 bg-white p-6" onSubmit={onSave}>
-        <SettingsField label="Language">
+        <SettingsField label={t('language.label')}>
           <select
             className="rounded-lg border border-slate-300 px-3 py-2"
             value={language}
             onChange={(event) => setLanguage(event.target.value)}
           >
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="ar">العربية</option>
-          </select>
+            <option value="en">{t('language.en')}</option>
+            <option value="fr">{t('language.fr')}</option>
+                      </select>
         </SettingsField>
 
-        <SettingsField label="Theme">
+        <SettingsField label={t('theme.label')}>
           <select
             className="rounded-lg border border-slate-300 px-3 py-2"
             value={theme}
             onChange={(event) => setTheme(event.target.value as 'light' | 'dark')}
           >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="light">{t('theme.light')}</option>
+            <option value="dark">{t('theme.dark')}</option>
           </select>
         </SettingsField>
 
         <label className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
-          <span className="text-sm font-medium text-slate-700">Enable notifications</span>
+          <span className="text-sm font-medium text-slate-700">{t('notifications')}</span>
           <input
             type="checkbox"
             checked={notificationsEnabled}
@@ -108,7 +111,7 @@ export function SettingsPage() {
           className="rounded-lg bg-slate-900 px-4 py-2 text-white"
           disabled={isSaving}
         >
-          {isSaving ? 'Saving...' : 'Save settings'}
+          {isSaving ? t('saving') : t('save')}
         </button>
       </form>
     </section>
