@@ -1,23 +1,12 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app/app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
 import 'dotenv/config';
+import { AppModule } from './app/app.module';
 import { requestLoggingMiddleware } from './app/observability/request-logging.middleware';
+import { buildSwaggerDocument, swaggerPath } from './app/swagger';
 
 async function bootstrap() {
-  const config = new DocumentBuilder()
-    .setTitle('BlaBlaNote API')
-    .setDescription('API documentation for BlaBlaNote')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-
   const app = await NestFactory.create(AppModule);
 
   app.use(requestLoggingMiddleware);
@@ -37,8 +26,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  const document = buildSwaggerDocument(app);
+  SwaggerModule.setup(swaggerPath, app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);

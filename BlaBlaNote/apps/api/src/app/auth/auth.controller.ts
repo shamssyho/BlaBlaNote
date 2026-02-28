@@ -28,7 +28,7 @@ import {
   RefreshTokenResponseDto,
 } from './dto/auth-token-response.dto';
 
-@ApiTags('Authentication')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
