@@ -23,6 +23,7 @@ export function AppHeader() {
     { label: t('nav.notes'), to: '/notes' },
     { label: t('nav.createNote'), to: '/notes/new' },
     { label: t('nav.projects'), to: '/projects' },
+    { label: 'Tags', to: '/tags' },
   ] as const;
 
   const initials = [user?.firstName, user?.lastName]

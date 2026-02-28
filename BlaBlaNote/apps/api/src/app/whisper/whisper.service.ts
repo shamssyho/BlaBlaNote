@@ -119,7 +119,7 @@ export class WhisperService {
       await this.prisma.note.update({
         where: { id: noteId },
         data: {
-          status: NoteStatus.TRANSCRIBING,
+          status: NoteStatus.PROCESSING_TRANSLATION,
           errorMessage: null,
           audioUrl: filePath,
         },
@@ -132,7 +132,7 @@ export class WhisperService {
         data: {
           text: transcript,
           transcriptText: transcript,
-          status: NoteStatus.SUMMARIZING,
+          status: NoteStatus.PROCESSING_SUMMARY,
           errorMessage: null,
         },
       });
@@ -197,7 +197,7 @@ export class WhisperService {
       await this.prisma.note.update({
         where: { id: noteId },
         data: {
-          status: NoteStatus.SUMMARIZING,
+          status: NoteStatus.PROCESSING_SUMMARY,
           errorMessage: null,
           text: transcript,
           transcriptText: transcript,

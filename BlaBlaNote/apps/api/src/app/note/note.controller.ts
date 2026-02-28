@@ -21,9 +21,9 @@ import { NoteProcessingStatusDto } from './dto/note-processing-status.dto';
 import { CreateShareLinkDto } from './dto/create-share-link.dto';
 import { CreateShareLinkResponseDto } from './dto/create-share-link-response.dto';
 import { ShareHistoryItemDto } from './dto/share-history-item.dto';
+import { ShareNoteDto } from './dto/share-note.dto';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOperation,
   ApiQuery,
   ApiResponse,
@@ -50,21 +50,10 @@ export class NoteController {
   @ApiQuery({ name: 'pageSize', required: false, type: Number, example: 20 })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'projectId', required: false, type: String })
-  @ApiQuery({
-    name: 'tagIds',
-    required: false,
-    type: [String],
-    description: 'Filter notes that contain all provided tags',
-    isArray: true,
-  })
+  @ApiQuery({ name: 'tagIds', required: false, type: [String], isArray: true })
   @ApiQuery({ name: 'dateFrom', required: false, type: String })
   @ApiQuery({ name: 'dateTo', required: false, type: String })
-  @ApiResponse({
-    status: 200,
-    description: 'Paginated notes list',
-    type: GetNotesResponseDto,
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 200, description: 'Paginated notes list', type: GetNotesResponseDto })
   async getMyNotes(@Req() req: Request, @Query() query: GetNotesQueryDto) {
     const user = req.user as AuthUser;
     return this.noteService.getNotesByUser(user.id, query);
@@ -72,9 +61,6 @@ export class NoteController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get one note with processing status details' })
-  @ApiResponse({ status: 200, description: 'Note fetched successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Note not found' })
   async getNoteById(@Param('id') id: string, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.noteService.getNoteById(id, user.id);
@@ -82,125 +68,61 @@ export class NoteController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new note manually' })
-  @ApiResponse({ status: 201, description: 'Note created successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createNote(@Body() dto: CreateNoteDto, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.noteService.createNote(dto, user.id);
   }
 
-  @Post(':id/retry')
-  @ApiOperation({ summary: 'Retry transcription or summarization for a note' })
-  @ApiResponse({
-    status: 200,
-    description: 'Note processing retried successfully',
-    type: NoteProcessingStatusDto,
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Note not found' })
-  async retryNote(@Param('id') id: string, @Req() req: Request) {
-    const user = req.user as AuthUser;
-    return this.noteService.retryProcessing(id, user.id);
-  }
-
   @Patch(':id/project')
   @ApiOperation({ summary: 'Attach note to a project or remove it' })
-  @ApiResponse({
-    status: 200,
-    description: 'Note project updated successfully',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Note or project not found' })
-  async updateNoteProject(
-    @Param('id') id: string,
-    @Body() dto: UpdateNoteProjectDto,
-    @Req() req: Request
-  ) {
+  async updateNoteProject(@Param('id') id: string, @Body() dto: UpdateNoteProjectDto, @Req() req: Request) {
     const user = req.user as AuthUser;
-    return this.noteService.updateNoteProject(
-      id,
-      user.id,
-      dto.projectId ?? null
-    );
+    return this.noteService.updateNoteProject(id, user.id, dto.projectId ?? null);
   }
 
   @Put(':id/tags')
   @ApiOperation({ summary: 'Replace tags of a note' })
-  @ApiResponse({ status: 200, description: 'Note tags replaced successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Note or tag not found' })
-  async replaceNoteTags(
-    @Param('id') id: string,
-    @Body() dto: ReplaceNoteTagsDto,
-    @Req() req: Request
-  ) {
+  async replaceNoteTags(@Param('id') id: string, @Body() dto: ReplaceNoteTagsDto, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.noteService.replaceNoteTags(id, user.id, dto.tagIds);
   }
 
+  @Post(':id/summarize')
+  @ApiOperation({ summary: 'Trigger note summarization' })
+  @ApiResponse({ status: 200, type: NoteProcessingStatusDto })
+  async summarizeNote(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.noteService.summarizeNote(id, user.id);
+  }
+
+  @Post(':id/translate')
+  @ApiOperation({ summary: 'Trigger note translation' })
+  @ApiResponse({ status: 200, type: NoteProcessingStatusDto })
+  async translateNote(@Param('id') id: string, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.noteService.translateNote(id, user.id);
+  }
+
   @Post(':id/share')
-  @ApiOperation({ summary: 'Share a note via email or WhatsApp' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        method: { type: 'string', example: 'email' },
-        to: { type: 'string', example: 'recipient@example.com' },
-        type: {
-          type: 'string',
-          enum: ['summary', 'translation'],
-          example: 'summary',
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 200, description: 'Note shared successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async shareNote(
-    @Param('id') id: string,
-    @Body()
-    body: { method: string; to: string; type: 'summary' | 'translation' }
-  ) {
-    const { method, to, type } = body;
-    return this.noteService.shareNote(id, method, to, type);
+  @ApiOperation({ summary: 'Share a note via email, WhatsApp, or Notion' })
+  async shareNote(@Param('id') id: string, @Body() dto: ShareNoteDto, @Req() req: Request) {
+    const user = req.user as AuthUser;
+    return this.noteService.shareNote(id, user.id, dto.channel, dto.destination, dto.contentType, dto.targetLanguage);
   }
 
   @Post(':id/share-link')
   @ApiOperation({ summary: 'Create a public share link for a note' })
-  @ApiResponse({
-    status: 201,
-    description: 'Share link created successfully',
-    type: CreateShareLinkResponseDto,
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Note not found' })
-  async createShareLink(
-    @Param('id') id: string,
-    @Body() dto: CreateShareLinkDto,
-    @Req() req: Request
-  ) {
+  @ApiResponse({ status: 201, type: CreateShareLinkResponseDto })
+  async createShareLink(@Param('id') id: string, @Body() dto: CreateShareLinkDto, @Req() req: Request) {
     const user = req.user as AuthUser;
-    return this.noteService.createShareLink(
-      id,
-      user.id,
-      dto.expiresInHours,
-      dto.allowSummary,
-      dto.allowTranscript
-    );
+    return this.noteService.createShareLink(id, user.id, dto.expiresInHours, dto.allowSummary, dto.allowTranscript);
   }
 
   @Get(':id/shares')
   @ApiOperation({ summary: 'Get share link history for a note' })
-  @ApiResponse({
-    status: 200,
-    description: 'Share links fetched successfully',
-    type: [ShareHistoryItemDto],
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Note not found' })
+  @ApiResponse({ status: 200, type: [ShareHistoryItemDto] })
   async getShareHistory(@Param('id') id: string, @Req() req: Request) {
     const user = req.user as AuthUser;
     return this.noteService.getShareHistory(id, user.id);
   }
-
 }

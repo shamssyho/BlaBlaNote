@@ -38,13 +38,13 @@ export class ProjectController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Rename a project' })
+  @ApiOperation({ summary: 'Update a project' })
   @ApiResponse({ status: 200, description: 'Project renamed successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  renameProject(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateProjectDto) {
+  updateProject(@Req() req: Request, @Param('id') id: string, @Body() dto: UpdateProjectDto) {
     const user = req.user as AuthUser;
-    return this.projectService.renameProject(user.id, id, dto);
+    return this.projectService.updateProject(user.id, id, dto);
   }
 
   @Delete(':id')

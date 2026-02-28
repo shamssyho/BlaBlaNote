@@ -3,6 +3,7 @@ import { Note } from './notes.types';
 export interface Project {
   id: string;
   name: string;
+  color: string;
   notesCount: number;
   createdAt: string;
   updatedAt: string;
@@ -16,8 +17,10 @@ export interface ProjectDetail {
 
 export interface CreateProjectPayload {
   name: string;
+  color: string;
 }
 
 export interface UpdateProjectPayload {
-  name: string;
+  name?: string;
+  color?: string;
 }

@@ -33,6 +33,21 @@ export function NoteDetailPage({ noteId }: NoteDetailPageProps) {
     void loadNote();
   }, [noteId]);
 
+  async function refresh() {
+    const data = await notesApi.getById(noteId);
+    setNote(data);
+  }
+
+  async function onSummarize() {
+    await notesApi.summarize(noteId);
+    await refresh();
+  }
+
+  async function onTranslate() {
+    await notesApi.translate(noteId);
+    await refresh();
+  }
+
   async function onDelete() {
     await notesApi.delete(noteId);
     navigate('/notes');
@@ -64,6 +79,10 @@ export function NoteDetailPage({ noteId }: NoteDetailPageProps) {
         <h2>{t('detail.translation')}</h2>
         <p>{note.translation ?? t('detail.translationProcessing')}</p>
       </article>
+      <div className="flex gap-2">
+        <button type="button" onClick={onSummarize} disabled={note.status.includes('PROCESSING')}>Summarize</button>
+        <button type="button" onClick={onTranslate} disabled={note.status.includes('PROCESSING')}>Translate</button>
+      </div>
       <ShareNoteForm noteId={note.id} />
       <button type="button" className="danger-button" onClick={onDelete}>
         {t('detail.delete')}
