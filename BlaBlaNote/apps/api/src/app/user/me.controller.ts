@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiNotFoundResponse,
@@ -27,29 +27,5 @@ export class MeController {
   @ApiNotFoundResponse({ description: 'User not found' })
   exportMyData(@Req() req: { user: { id: string } }) {
     return this.userService.exportUserData(req.user.id);
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Delete()
-  @ApiOperation({
-    summary: 'Delete my account and owned data',
-    description:
-      'Permanently deletes the authenticated user and all owned data through database cascades.',
-  })
-  @ApiOkResponse({
-    description: 'Account and owned data deleted successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-      },
-    },
-  })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiNotFoundResponse({ description: 'User not found' })
-  async deleteMyAccount(@Req() req: { user: { id: string } }) {
-    await this.userService.deleteMyAccount(req.user.id);
-    return { success: true };
   }
 }

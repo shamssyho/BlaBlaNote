@@ -22,15 +22,8 @@ import { BlogListPage } from '../pages/BlogListPage';
 import { BlogDetailPage } from '../pages/BlogDetailPage';
 import { AdminBlogPage } from '../pages/admin/AdminBlogPage';
 import { AdminBlogCategoriesPage } from '../pages/admin/AdminBlogCategoriesPage';
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <section>
-      <h1>{title}</h1>
-      <p>This area is coming soon.</p>
-    </section>
-  );
-}
+import { ProfilePage } from '../pages/ProfilePage';
+import { SettingsPage } from '../pages/SettingsPage';
 
 function renderAdminPage(path: string) {
   if (path === '/admin') {
@@ -149,7 +142,7 @@ function RoutedApp() {
     return (
       <ProtectedRoute redirectTo="/login">
         <AppLayout>
-          <PlaceholderPage title="Profile" />
+          <ProfilePage />
         </AppLayout>
       </ProtectedRoute>
     );
@@ -159,7 +152,7 @@ function RoutedApp() {
     return (
       <ProtectedRoute redirectTo="/login">
         <AppLayout>
-          <PlaceholderPage title="Settings" />
+          <SettingsPage />
         </AppLayout>
       </ProtectedRoute>
     );
