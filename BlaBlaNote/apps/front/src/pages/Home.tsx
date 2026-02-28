@@ -6,6 +6,15 @@ import { useAuth } from '../hooks/useAuth';
 import { useNotes } from '../hooks/useNotes';
 import { Link, useNavigate } from '../router/router';
 
+type NotesLike<T> = T[] | { items?: T[] } | undefined | null;
+
+function toArray<T>(value: NotesLike<T>): T[] {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object' && Array.isArray((value as any).items))
+    return (value as any).items;
+  return [];
+}
+
 export function HomePage() {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
@@ -13,26 +22,38 @@ export function HomePage() {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState('');
 
+  const notesArray = useMemo(() => toArray(notes as any), [notes]);
+
   const filteredNotes = useMemo(() => {
-    if (!searchValue.trim()) {
-      return notes;
-    }
+    if (!searchValue.trim()) return notesArray;
 
     const normalizedValue = searchValue.toLowerCase();
-    return notes.filter((note) => {
-      const createdAt = new Date(note.createdAt).toLocaleString(i18n.language).toLowerCase();
+
+    return notesArray.filter((note: any) => {
+      const createdAt = new Date(note.createdAt)
+        .toLocaleString(i18n.language)
+        .toLowerCase();
       const summary = note.summary?.toLowerCase() ?? '';
       const translation = note.translation?.toLowerCase() ?? '';
-      return summary.includes(normalizedValue) || translation.includes(normalizedValue) || createdAt.includes(normalizedValue);
+      return (
+        summary.includes(normalizedValue) ||
+        translation.includes(normalizedValue) ||
+        createdAt.includes(normalizedValue)
+      );
     });
-  }, [i18n.language, notes, searchValue]);
+  }, [i18n.language, notesArray, searchValue]);
 
-  const sortedNotes = useMemo(
-    () => [...filteredNotes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 6),
-    [filteredNotes]
-  );
+  const sortedNotes = useMemo(() => {
+    return filteredNotes
+      .slice()
+      .sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, 6);
+  }, [filteredNotes]);
 
-  const hasNotes = notes.length > 0;
+  const hasNotes = notesArray.length > 0;
 
   function onSearchChange(event: ChangeEvent<HTMLInputElement>) {
     setSearchValue(event.target.value);
@@ -42,9 +63,13 @@ export function HomePage() {
     <section className="space-y-6">
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold text-indigo-700">{t('home.welcomeBack')}</p>
+          <p className="text-sm font-semibold text-indigo-700">
+            {t('home.welcomeBack')}
+          </p>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {user ? `${user.firstName} ${user.lastName}` : t('home.dashboardFallback')}
+            {user
+              ? `${user.firstName} ${user.lastName}`
+              : t('home.dashboardFallback')}
           </h1>
           <p className="text-slate-600">{t('home.description')}</p>
 
@@ -68,12 +93,18 @@ export function HomePage() {
         <div className="grid gap-3" aria-label={t('home.quickActions')}>
           <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">{t('home.totalNotes')}</p>
-            <strong className="mt-1 inline-block text-2xl font-semibold text-slate-900">{notes.length}</strong>
+            <strong className="mt-1 inline-block text-2xl font-semibold text-slate-900">
+              {notesArray.length}
+            </strong>
           </article>
           <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">{t('home.lastUpdated')}</p>
             <strong className="mt-1 inline-block text-2xl font-semibold text-slate-900">
-              {notes[0] ? new Date(notes[0].createdAt).toLocaleDateString(i18n.language) : t('home.noDate')}
+              {notesArray[0]
+                ? new Date(notesArray[0].createdAt).toLocaleDateString(
+                    i18n.language
+                  )
+                : t('home.noDate')}
             </strong>
           </article>
         </div>
@@ -81,7 +112,9 @@ export function HomePage() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold text-slate-900">{t('home.recentNotes')}</h2>
+          <h2 className="text-xl font-semibold text-slate-900">
+            {t('home.recentNotes')}
+          </h2>
           <Link
             to="/notes"
             className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
@@ -95,7 +128,9 @@ export function HomePage() {
 
         {!isLoading && !hasNotes ? (
           <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900">{t('home.noNotesYet')}</h3>
+            <h3 className="text-lg font-semibold text-slate-900">
+              {t('home.noNotesYet')}
+            </h3>
             <p className="text-slate-600">{t('home.emptyStateDescription')}</p>
             <Link
               to="/notes/new"
@@ -107,9 +142,12 @@ export function HomePage() {
         ) : null}
 
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedNotes.map((note) => {
-            const status = note.summary && note.translation ? 'completed' : 'processing';
-            const createdAt = new Date(note.createdAt).toLocaleString(i18n.language);
+          {sortedNotes.map((note: any) => {
+            const status =
+              note.summary && note.translation ? 'completed' : 'processing';
+            const createdAt = new Date(note.createdAt).toLocaleString(
+              i18n.language
+            );
 
             return (
               <li key={note.id}>
@@ -119,8 +157,12 @@ export function HomePage() {
                   onClick={() => navigate(`/notes/${note.id}`)}
                   aria-label={t('home.openNoteCreatedAt', { date: createdAt })}
                 >
-                  <h3 className="text-sm font-semibold text-slate-900">{createdAt}</h3>
-                  <p className="text-sm text-slate-600">{note.summary ?? t('home.summaryPending')}</p>
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {createdAt}
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    {note.summary ?? t('home.summaryPending')}
+                  </p>
                   <StatusBadge status={status} />
                 </button>
               </li>

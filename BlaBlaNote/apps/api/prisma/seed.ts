@@ -1,34 +1,36 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL as string;
-  const password = process.env.ADMIN_PASSWORD as string;
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@blablanote.dev';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? 'Admin12345!';
 
-  if (!email) throw new Error('Missing ADMIN_EMAIL');
-  if (!password) throw new Error('Missing ADMIN_PASSWORD');
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
 
-  const rounds = Number(process.env.BCRYPT_ROUNDS) || 10;
-  const passwordHash = await bcrypt.hash(password, rounds);
-
-  const user = await prisma.user.upsert({
-    where: { email },
+  const admin = await prisma.user.upsert({
+    where: { email: adminEmail },
     update: {
       role: 'ADMIN',
+      firstName: 'Admin',
+      lastName: 'BlaBlaNote',
       password: passwordHash,
+      isBlocked: false,
     },
     create: {
-      firstName: 'Admin',
-      lastName: 'Root',
-      email,
-      password: passwordHash,
+      email: adminEmail,
       role: 'ADMIN',
+      firstName: 'Admin',
+      lastName: 'BlaBlaNote',
+      password: passwordHash,
+      isBlocked: false,
     },
+    select: { id: true, email: true, role: true },
   });
 
-  console.log(`✅ Admin ready: ${user.email} (${user.role})`);
+  console.log('Seeded admin:', admin);
 }
 
 main()
