@@ -17,7 +17,10 @@
     "test:web": "NX_NO_CLOUD=true nx test front",
     "test:web:watch": "NX_NO_CLOUD=true nx test front --watch",
     "test:web:e2e": "NX_NO_CLOUD=true nx e2e front-e2e",
-    "test:all": "NX_NO_CLOUD=true yarn test:api && yarn test:api:e2e && yarn test:web && yarn test:web:e2e"
+    "test:all": "NX_NO_CLOUD=true yarn test:api && yarn test:api:e2e && yarn test:web && yarn test:web:e2e",
+    "docs:openapi": "ts-node --project apps/api/tsconfig.app.json --transpile-only tools/openapi/export-openapi.ts",
+    "docs:marketing": "tsx tools/docs/generate-marketing-docs.ts",
+    "docs:build": "yarn docs:openapi && yarn docs:marketing && prettier --write \"docs/**/*.md\" \"docs/**/*.json\""
   },
   "private": true,
   "dependencies": {

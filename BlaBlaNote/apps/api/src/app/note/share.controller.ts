@@ -15,7 +15,7 @@ type AuthUser = {
   role: 'ADMIN' | 'USER';
 };
 
-@ApiTags('Shares')
+@ApiTags('Share')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 @Controller('shares')
