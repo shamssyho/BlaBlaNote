@@ -1,322 +1,206 @@
 # TECHNICAL_SPECIFICATION.md
 
-## 1. Document Purpose
+## 1. Purpose
 
-This document defines the developer-focused technical design of BlaBlaNote, including architecture, data model, API segmentation, security model, AI processing lifecycle, and production operations.
+This document describes BlaBlaNote's technical architecture, security model, processing lifecycle, observability, and delivery strategy.
 
 ---
 
 ## 2. System Architecture
 
-## 2.1 High-Level Components
+### 2.1 Monorepo layout
+- **Nx workspace** with independent deployable apps.
+- **Backend**: NestJS REST API (`apps/api`).
+- **Frontend**: React + Vite SPA (`apps/front`).
+- **Test apps**: `apps/api-e2e`, `apps/front-e2e`.
 
-1. **Frontend (React + Vite)**
-   - SPA for end users and admins
-   - Access token bearer authentication
-   - Automatic token refresh via HTTP-only cookie
+### 2.2 Backend modular domains
+- `auth`: registration, login, refresh rotation, password reset.
+- `profile`: profile read/update, avatar upload, password change, self-delete.
+- `note`: notes CRUD, share links, retry flow, note metadata.
+- `whisper`: transcription + summarization orchestration.
+- `project` and `tag`: organization features.
+- `admin`: dashboard stats, users, jobs.
+- `blog`: public content + admin content management.
+- `user`: broader account operations including data export.
 
-2. **Backend API (NestJS)**
-   - REST API with modular domain boundaries (auth, notes, projects, tags, admin, blog, user)
-   - DTO validation and role-based route protection
-   - Swagger auto-documentation
-
-3. **Database (PostgreSQL + Prisma)**
-   - Relational persistence for users, notes, projects, tags, blog, token/session metadata
-
-4. **AI Services**
-   - OpenAI Whisper for transcription
-   - OpenAI Chat Completions for summarization and translation
-
-5. **External Integrations**
-   - Brevo transactional email
-   - Twilio WhatsApp messaging
-   - Discord webhook for activity notifications
-
-6. **Storage Layer**
-   - Current implementation: local disk uploads (`./uploads`)
-   - Target architecture: pluggable S3-compatible object storage adapter
+### 2.3 Data and external components
+- PostgreSQL + Prisma ORM.
+- AI providers for transcription and summarization.
+- S3-compatible object storage integration for media endpoints.
+- Optional communication channels: email and WhatsApp.
 
 ---
 
-## 2.2 Runtime Topology
+## 3. Authentication and Authorization
 
-- `front` app runs separately from `api`
-- `api` connects to PostgreSQL via `DATABASE_URL`
-- `api` calls external APIs over HTTPS (OpenAI, Twilio, Brevo, Discord)
-- CORS is configured to allow the frontend origin
+### 3.1 Access + refresh model
+- Access token: short-lived JWT for API authorization header.
+- Refresh token: opaque token in HttpOnly cookie.
+- Refresh token data stored hashed in `RefreshToken` table.
 
----
+### 3.2 Rotation flow
+1. Login issues access token + refresh cookie.
+2. On refresh, old token is revoked/replaced and a new one is minted.
+3. Rotation chain is stored (`replacedByTokenId`) for replay analysis.
+4. Logout revokes active refresh token and clears cookie.
 
-## 3. Database Schema (Prisma)
+### 3.3 Authorization model
+- `JwtAuthGuard` for authenticated routes.
+- `RolesGuard` + `@Roles('ADMIN')` for admin-only routes.
+- User-state validation (`isBlocked`, account existence) in domain services.
 
-## 3.1 Core Domain Entities
-
-- **User**: identity, role, status, billing metadata, lifecycle timestamps
-- **Note**: core note content + AI outputs + processing state
-- **Project**: user-owned grouping of notes
-- **Tag** and **NoteTag**: user-scoped tagging and note-tag many-to-many linkage
-- **ShareLink**: hashed public token links with expiry and field-level access flags
-
-## 3.2 Security/Auth Entities
-
-- **RefreshToken**: token rotation graph (replacement chain), per-session metadata, revocation tracking
-- **PasswordResetToken**: one-time reset token with expiry + usage timestamp
-
-## 3.3 Content/Admin Entities
-
-- **BlogPost** and **BlogCategory**: public content with admin-managed publishing workflow
-
-## 3.4 Key Relational Rules
-
-- User -> Notes/Projects/Tags/BlogPosts cascade on delete
-- Note -> ShareLinks cascade on delete
-- Note <-> Tag via NoteTag composite PK (`noteId`, `tagId`)
-- Project deletion sets related Note.projectId to null
-- Unique constraints:
-  - `User.email`
-  - `Tag(userId, slug)`
-  - `RefreshToken.tokenHash`
-  - `PasswordResetToken.tokenHash`
-  - `BlogPost.slug`, `BlogCategory.slug`
+### 3.4 Rate limiting
+- Abuse-sensitive endpoints are protected with throttling controls.
+- Rate limits are part of the security perimeter with JWT/cookie protections.
 
 ---
 
-## 4. API Structure
+## 4. Data Model and Persistence
 
-## 4.1 Public Endpoints
+### 4.1 Core entities
+- `User`: identity, role, status, settings (`language`, `theme`, `notificationsEnabled`), avatar URL, lifecycle timestamps.
+- `Note`: user note body + AI outputs + processing status.
+- `Project`: user-scoped grouping.
+- `Tag` + `NoteTag`: user-scoped taxonomy.
+- `ShareLink`: token hash, expiration, field-level permissions.
 
-- `POST /auth/register`
-- `POST /auth/login`
-- `POST /auth/refresh`
-- `POST /auth/logout`
-- `POST /auth/forgot-password`
-- `POST /auth/reset-password`
-- `GET /public/notes/:token`
-- `GET /blog`
-- `GET /blog/:slug`
-- `GET /blog/categories`
+### 4.2 Security entities
+- `RefreshToken`: session, revocation, rotation metadata.
+- `PasswordResetToken`: one-time reset flow.
 
-## 4.2 Protected Endpoints (Authenticated User)
+### 4.3 Content entities
+- `BlogPost`, `BlogCategory`: publishing domain with admin ownership.
 
-- Notes: list/get/create/retry/assign project/replace tags/share/create share-link/history
-- Shares: revoke share-link
-- Projects: CRUD
-- Tags: CRUD
-- Whisper: upload/transcribe audio
-- Me: data export + account deletion
-- User profile/self and own resource operations
-
-## 4.3 Admin Endpoints (Role = ADMIN)
-
-- `GET /admin/stats`
-- `GET /admin/jobs`
-- `GET /admin/users`
-- `PATCH /admin/users/:id/block`
-- Blog administration endpoints under `/admin/blog...`
-- Admin-level user creation / role updates
-
-## 4.4 API Documentation
-
-- Swagger UI: `/api/docs`
-- Bearer auth configured in Swagger definition
+### 4.4 Integrity rules
+- Unique: user email, token hashes, blog slugs, `(userId, tag.slug)`.
+- Cascades for user-owned data.
+- Project removal detaches notes (`SetNull`).
 
 ---
 
-## 5. Authentication & Session Flow (Access + Refresh)
+## 5. Transcription Pipeline Lifecycle
 
-## 5.1 Token Model
+`Note.status` values:
+- `UPLOADED`
+- `TRANSCRIBING`
+- `SUMMARIZING`
+- `READY`
+- `FAILED`
 
-- **Access token**: short-lived JWT used in Authorization header
-- **Refresh token**: long-lived opaque token stored as HttpOnly cookie
-- Refresh tokens are persisted hashed and rotated per refresh event
+### 5.1 Lifecycle behavior
+1. Note with audio enters `UPLOADED`.
+2. Transcription starts -> `TRANSCRIBING`.
+3. Transcript saved, summarization starts -> `SUMMARIZING`.
+4. Outputs persisted -> `READY`.
+5. Any error -> `FAILED` + `errorMessage`.
 
-## 5.2 Login Sequence
-
-1. User submits credentials
-2. Credentials validated (bcrypt compare)
-3. Access token issued
-4. Refresh token issued + stored (hash, sessionId, metadata)
-5. Refresh token returned as secure cookie
-
-## 5.3 Refresh Sequence
-
-1. Frontend receives `401` on API request
-2. Calls `POST /auth/refresh` with refresh cookie automatically attached
-3. Backend validates refresh token hash + expiration + revocation status
-4. Backend rotates token (old revoked/replaced, new persisted)
-5. Backend returns new access token + new refresh cookie
-
-## 5.4 Logout Sequence
-
-1. Frontend calls `POST /auth/logout`
-2. Backend revokes current refresh token
-3. Refresh cookie cleared
-4. Frontend clears access token and local user snapshot
+### 5.2 Retry strategy
+- Retry endpoint restarts from available state.
+- If audio exists, full pipeline can rerun.
+- If transcript already exists, summarization-only retry path is supported.
 
 ---
 
-## 6. Transcription Pipeline States
+## 6. Share Link Security Model
 
-`Note.status` lifecycle:
-
-1. **UPLOADED**
-   - Audio path known, processing pending
-2. **TRANSCRIBING**
-   - Whisper request in progress
-3. **SUMMARIZING**
-   - Transcript generated; summary/translation in progress
-4. **READY**
-   - Transcript + summary (and optional translation) persisted
-5. **FAILED**
-   - Any error captured in `errorMessage`
-
-Retry logic:
-- If audio is available, pipeline restarts from transcription
-- If transcript exists without audio, summarization can be retried directly
+- Public share URL contains a random token.
+- Server stores only `tokenHash`, never plaintext token.
+- Access validates token hash and `expiresAt`.
+- Share metadata includes permission flags (`allowSummary`, `allowTranscript`).
+- Revocation is supported through authenticated endpoint.
 
 ---
 
-## 7. Error Handling Strategy
+## 7. Storage Architecture (S3-Compatible)
 
-- NestJS HTTP exceptions for expected domain errors (e.g., not found, validation)
-- Prisma and external API errors transformed into controlled failure states where relevant
-- Pipeline failures persist recoverable status and error message in `Note`
-- API consumers receive structured HTTP error payloads
-- Frontend normalizes Axios errors into typed `ApiError`
+### 7.1 Current integration model
+- Upload services use configurable base endpoints:
+  - `S3_UPLOAD_BASE_URL`
+  - `S3_PUBLIC_BASE_URL`
+  - optional `S3_UPLOAD_TOKEN`
+- Profile avatar uploads are sent via HTTP PUT to S3-compatible endpoints.
 
----
-
-## 8. Security Considerations
-
-- Passwords hashed with bcrypt (`BCRYPT_ROUNDS` configurable)
-- JWT secret must be strong and environment-specific
-- Refresh token is cookie-based and not exposed to JavaScript
-- Token hashes stored instead of raw refresh token values
-- Role guard enforces ADMIN-only routes
-- DTO validation pipe with whitelist/forbidNonWhitelisted enabled
-- Public share access uses random token + SHA-256 hash lookup
-- Share links are time-bounded and permission-scoped (`allowSummary`, `allowTranscript`)
-- CORS restricted to configured frontend origin
-
-Recommended hardening:
-- Add rate limits on auth/share endpoints
-- Add CSRF strategy for cookie-based refresh endpoint
-- Centralized secret manager and key rotation policy
-- Endpoint-level audit trail persisted to DB/SIEM
+### 7.2 Design principles
+- Object keys are generated server-side.
+- Public URL generation is deterministic.
+- Storage provider is abstracted through environment-driven configuration.
 
 ---
 
-## 9. Data Flow Diagrams (Textual)
+## 8. Admin Monitoring System
 
-## 9.1 Note Upload + AI Processing
+Admin APIs provide:
+- Platform statistics (`/admin/stats`).
+- Job monitoring (`/admin/jobs`) to inspect pipeline health.
+- User management (`/admin/users`, block/unblock).
 
-`Frontend -> POST /whisper/transcribe -> API stores file locally -> Note(UPLOADED) -> Note(TRANSCRIBING) -> OpenAI Whisper -> Note(SUMMARIZING) -> OpenAI Chat -> Note(READY) -> Frontend polls/queries note`
-
-## 9.2 Authenticated API Call with Auto-Refresh
-
-`Frontend request (Bearer access) -> API validates JWT -> (if expired) 401 -> Frontend POST /auth/refresh (cookie) -> API rotates refresh token -> new access token -> retry original request`
-
-## 9.3 Public Share Link Read
-
-`Recipient opens /public/notes/:token -> API hashes token -> ShareLink lookup by hash + expiresAt -> if valid, return only permitted fields`
+This supports operational detection of spikes in failed jobs, abusive users, and growth trends.
 
 ---
 
-## 10. Scalability Considerations
+## 9. Observability Strategy
 
-- Current AI processing is synchronous in request path; move to job queue for scale
-- Horizontal scaling requires stateless API nodes + shared DB + shared object storage
-- Introduce worker pool for transcription/summarization tasks
-- Use Redis for queue coordination, distributed locks, and short-term caching
-- Consider read replicas for analytics-heavy admin views
-
----
-
-## 11. Performance Optimization Strategy
-
-- DB indexes already present on common query filters (status, createdAt, foreign keys)
-- Pagination on list endpoints (`page`, `pageSize`) reduces payload size
-- Use selective field projection in admin/jobs endpoints
-- Suggested improvements:
-  - Query performance observability + slow query logging
-  - Cache blog public list/detail and static metadata
-  - Offload heavy AI operations to async workers
-  - Use CDN for frontend/static assets
+- Request logging middleware captures API traffic metadata.
+- Structured domain-level errors for troubleshooting.
+- Optional Discord webhook notifications for operational events.
+- Health endpoint (`/health`) for uptime probes.
+- Recommended extension: centralized logs + metrics + alerting in production.
 
 ---
 
-## 12. Logging & Monitoring Strategy
+## 10. Testing Strategy
 
-Current:
-- Request logging middleware in backend
-- Discord webhook notifications for key user actions/events
+### 10.1 Backend
+- Unit tests (Jest) for service-layer logic.
+- E2E tests (Supertest) for API behavior and integration.
 
-Recommended production stack:
-- Structured JSON logs (requestId, userId, route, latency)
-- Centralized log sink (ELK/OpenSearch/Datadog)
-- Metrics: request latency, error rates, queue depth, AI provider latency/cost
-- Alerting: high failure rate, auth anomalies, webhook failures, DB connection pool pressure
+### 10.2 Frontend
+- Unit tests (Vitest + React Testing Library) for components and hooks.
+- E2E tests (Playwright) for user journeys.
 
----
-
-## 13. Deployment Architecture
-
-Minimal production architecture:
-- Reverse proxy (Nginx/Traefik)
-- Frontend static hosting (CDN/object storage)
-- API service instances (containerized)
-- Managed PostgreSQL
-- Object storage (S3-compatible)
-- Secret manager for credentials
-
-CI/CD expectations:
-- Lint/test/build/migrate checks
-- Immutable image builds
-- Environment-specific config injection
-- Controlled migration deployment step before app rollout
+### 10.3 CI-ready separation
+- Distinct test targets (`test:api`, `test:api:e2e`, `test:web`, `test:web:e2e`).
+- Enables parallel CI jobs and staged quality gates.
 
 ---
 
-## 14. Backup & Recovery Strategy
+## 11. GDPR and Data Governance
 
-Database:
-- Daily full backups + WAL/incremental backups
-- Point-in-time recovery (PITR) for managed PostgreSQL
-- Backup retention by compliance policy (e.g., 30/90 days)
-
-Object storage:
-- Versioning + lifecycle retention policies
-- Cross-region replication for DR (if business-critical)
-
-Recovery drills:
-- Scheduled restore simulation in staging
-- RPO/RTO targets documented and validated
+- `GET /me/export` provides user data export.
+- `DELETE /me` supports account deletion.
+- Data model contains lifecycle fields (`deletedAt`, status enums) for governance workflows.
+- Admin operations should follow least-privilege and audit-friendly process discipline.
 
 ---
 
-## 15. GDPR Compliance Handling
+## 12. Scalability Plan
 
-Key controls:
-- User data export endpoint (`/me/export`)
-- User deletion endpoint (`DELETE /me`) for account erasure workflow
-- Token/session revocation capabilities
-- Purpose limitation by domain modules
-- Public share links are explicit, scoped, and time-limited
-
-Recommendations for full compliance posture:
-- Add consent ledger and legal basis mapping
-- Encrypt sensitive data at rest + in transit
-- Data retention schedules and automated purging for old artifacts
-- DPA with all subprocessors (OpenAI, Twilio, Brevo, hosting provider)
-- Documented incident response and breach notification procedure
+- Horizontal API scaling behind a load balancer.
+- Externalized PostgreSQL with managed backups/read-replica strategy.
+- S3-compatible storage for file assets.
+- Async job queue recommended for high-throughput transcription workloads.
+- Cache layer (future) for high-read endpoints and session optimization.
 
 ---
 
-## 16. Open Technical Roadmap
+## 13. CI/CD and Deployment Readiness
 
-- Queue-based AI orchestration
-- Idempotent job processing + dead-letter handling
-- True S3 upload flow (pre-signed URLs, lifecycle policies)
-- Multi-tenant readiness (logical partitioning)
-- Fine-grained admin RBAC permissions
-- Dedicated audit log table and immutable activity records
+- Deterministic Nx project targets per app.
+- Prisma migration workflow for schema consistency.
+- Test segmentation supports fast PR checks + deeper nightly pipelines.
+- Production pipeline recommendation:
+  1. Lint + unit tests.
+  2. Build.
+  3. Integration/e2e tests.
+  4. Migration deploy.
+  5. Rolling application deployment.
+
+---
+
+## 14. Operational Risks and Controls
+
+- **Token compromise risk** -> refresh hashing + rotation + revocation.
+- **Provider outages** -> retryable pipeline + failure status visibility.
+- **Abuse/spam** -> rate limiting + user blocking tools.
+- **Data exposure risk** -> expiring share links + hashed token storage + role guards.
