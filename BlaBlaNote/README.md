@@ -1,344 +1,158 @@
 # BlaBlaNote
 
-BlaBlaNote is a production-oriented AI voice-notes platform built in an Nx monorepo with NestJS + React. It enables users to upload voice notes, generate transcriptions and summaries with AI, organize notes by projects/tags, and share content through private/public channels.
+BlaBlaNote is a full-stack SaaS platform that converts voice notes into searchable, structured knowledge with AI-powered transcription, summarization, organization, and sharing.
 
----
+## Feature List
 
-## Features Overview
-
-### Core Product Features
-- Voice note upload (audio file intake and processing)
-- AI transcription (OpenAI Whisper)
-- AI summarization + translation support
-- Notes CRUD and lifecycle tracking (`UPLOADED`, `TRANSCRIBING`, `SUMMARIZING`, `READY`, `FAILED`)
-- Projects for note organization
-- Tag system per user
-- Search and filters (text, date range, tags, project)
-
-### Sharing Features
-- Share by email (Brevo)
-- Share by WhatsApp (Twilio)
-- Public secure share links with token + expiration + permission flags
-
-### Platform Features
-- JWT authentication (access token + rotating refresh token)
-- User self-service endpoints (profile export, account deletion)
-- Admin dashboard APIs (stats, users, jobs monitoring)
-- Blog module (public posts + admin management)
-- Discord webhook notifications for operational/user actions
-- Swagger API documentation
-
----
+- Email/password authentication with JWT access tokens and refresh token rotation
+- User registration, login, logout, forgot password, reset password
+- Voice note creation with optional audio upload
+- Note lifecycle tracking: uploaded, transcribing, summarizing, ready, failed
+- AI transcription pipeline
+- AI summarization and translation fields per note
+- Notes listing with pagination, filtering, and search
+- Project management for note grouping
+- Tag management and many-to-many note tagging
+- Public share links with scoped permissions and expiration
+- Share by email and WhatsApp
+- Profile and account settings management
+- Avatar upload through S3-compatible storage gateway
+- Admin dashboard stats and background job visibility
+- Admin user management and block/unblock workflow
+- Blog and blog categories with admin publishing workflows
+- Discord webhook notifications
+- Internationalization support for English and French in frontend
+- API documentation through Swagger
+- Backend unit and e2e tests, frontend unit and e2e tests
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Monorepo | Nx |
-| Backend | NestJS (TypeScript) |
-| Frontend | React + Vite + TypeScript + Ant Design |
-| Database | PostgreSQL |
-| ORM | Prisma |
-| Auth | JWT (access) + Refresh token rotation |
-| AI | OpenAI Whisper + Chat Completions |
-| Messaging | Brevo (email), Twilio (WhatsApp) |
-| Observability | Request logging middleware + Discord webhook |
-| API Docs | Swagger (`/api/docs`) |
-| Package Manager | Yarn 1.x |
+- Monorepo: Nx
+- Package manager: Yarn 1
+- Backend: NestJS, Prisma, PostgreSQL
+- Frontend: React, TypeScript, Vite, Ant Design
+- Authentication: JWT + refresh token rotation with secure HTTP-only cookie
+- Validation: class-validator, class-transformer
+- API docs: Swagger (`@nestjs/swagger`)
+- Testing: Jest, Vitest, Playwright
+- Integrations: OpenAI Whisper API, Brevo, Twilio WhatsApp, Discord webhook, S3-compatible storage
 
----
-
-## Architecture Overview
-
-BlaBlaNote follows a modular, layered approach aligned with clean architecture principles:
-
-- **Presentation layer**: NestJS controllers + DTO validation
-- **Application layer**: services encapsulating business flows (auth, notes, admin, blog, tags, projects)
-- **Infrastructure layer**: Prisma, external providers (OpenAI, Brevo, Twilio, Discord)
-- **Frontend layer**: modular React app consuming typed API clients
-
-The workspace contains two main applications:
-- `apps/api`: backend REST API
-- `apps/front`: frontend SPA
-
----
-
-## Folder Structure
+## Monorepo Structure
 
 ```text
-BlaBlaNote/
-├─ apps/
-│  ├─ api/
-│  │  ├─ prisma/
-│  │  │  ├─ schema.prisma
-│  │  │  └─ seed.ts
-│  │  └─ src/app/
-│  │     ├─ auth/
-│  │     ├─ note/
-│  │     ├─ whisper/
-│  │     ├─ admin/
-│  │     ├─ blog/
-│  │     ├─ project/
-│  │     ├─ tag/
-│  │     ├─ user/
-│  │     ├─ discord/
-│  │     └─ prisma/
-│  ├─ front/
-│  │  └─ src/
-│  │     ├─ api/
-│  │     ├─ modules/
-│  │     ├─ pages/
-│  │     ├─ layouts/
-│  │     ├─ router/
-│  │     └─ types/
-│  ├─ api-e2e/
-│  └─ front-e2e/
-├─ docs/
-├─ docker-compose.yml
-├─ package.json
-└─ nx.json
+apps/
+  api/          NestJS API + Prisma schema + seed
+  api-e2e/      Backend end-to-end tests
+  front/        React frontend (Vite)
+  front-e2e/    Frontend Playwright tests
 ```
 
----
+## Setup
 
-## Environment Variables
+### Prerequisites
 
-Create a `.env` file at repository root.
-
-| Variable | Required | Example | Description |
-|---|---|---|---|
-| `DATABASE_URL` | Yes | `postgresql://user:pass@localhost:5432/blablanote?schema=public` | Prisma connection string |
-| `POSTGRES_USER` | Yes (docker) | `postgres` | PostgreSQL username for `docker-compose` |
-| `POSTGRES_PASSWORD` | Yes (docker) | `postgres` | PostgreSQL password for `docker-compose` |
-| `POSTGRES_DB` | Yes (docker) | `blablanote` | PostgreSQL database name |
-| `PORT` | No | `3001` | Backend API port |
-| `FRONTEND_URL` | No | `http://localhost:4200` | CORS allowed frontend origin |
-| `APP_URL` | No | `http://localhost:3001` | Base URL used in generated public share links |
-| `NODE_ENV` | No | `development` / `production` | Affects cookie security settings |
-| `JWT_SECRET` | Yes (prod) | `super-secret` | JWT signing secret |
-| `JWT_ACCESS_EXPIRES_IN` | No | `15m` | Access token expiration |
-| `JWT_REFRESH_REMEMBER_ME_DAYS` | No | `30` | Refresh token TTL (remember me) |
-| `JWT_REFRESH_SESSION_HOURS` | No | `24` | Refresh token TTL (session mode) |
-| `RESET_PASSWORD_TOKEN_MINUTES` | No | `20` | Password reset token validity |
-| `BCRYPT_ROUNDS` | No | `10` | Password hashing rounds |
-| `ADMIN_EMAIL` | Optional | `admin@blablanote.com` | Seed admin email |
-| `ADMIN_PASSWORD` | Optional | `StrongPass123!` | Seed admin password |
-| `OPENAI_API_KEY` | Yes (AI features) | `sk-...` | Used for Whisper + summarization |
-| `BREVO_API_KEY` | Optional | `xkeysib-...` | Email sharing provider key |
-| `TWILIO_ACCOUNT_SID` | Optional | `AC...` | Twilio account SID |
-| `TWILIO_AUTH_TOKEN` | Optional | `...` | Twilio auth token |
-| `TWILIO_WHATSAPP_NUMBER` | Optional | `whatsapp:+14155238886` | Sender number for WhatsApp share |
-| `DISCORD_WEBHOOK_URL` | Optional | `https://discord.com/api/webhooks/...` | Notifications for actions/events |
-| `VITE_API_BASE_URL` | Yes (frontend) | `http://localhost:3001` | Frontend API base URL |
-
----
-
-## Installation
-
-### 1) Prerequisites
 - Node.js 20+
-- Yarn `1.22.x`
+- Yarn 1.22+
 - PostgreSQL 14+
-- (Optional) Docker & Docker Compose
 
-### 2) Install dependencies
+### Install
 
 ```bash
 yarn install
 ```
 
-### 3) Start PostgreSQL (optional via Docker)
+## Environment Variables
 
-```bash
-docker compose up -d db
-```
+| Variable                       | Required    | Scope            | Description                                   | Example                                                 |
+| ------------------------------ | ----------- | ---------------- | --------------------------------------------- | ------------------------------------------------------- |
+| `DATABASE_URL`                 | Yes         | API/Prisma       | Primary PostgreSQL connection string          | `postgresql://user:pass@localhost:5432/blablanote`      |
+| `DATABASE_URL_TEST`            | Recommended | API E2E          | Dedicated test database URL                   | `postgresql://user:pass@localhost:5432/blablanote_test` |
+| `PORT`                         | No          | API              | API port                                      | `3000`                                                  |
+| `HOST`                         | No          | API E2E          | Host used by API e2e setup                    | `127.0.0.1`                                             |
+| `FRONTEND_URL`                 | Yes         | API/Auth/CORS    | Frontend origin for CORS and links            | `http://localhost:4300`                                 |
+| `APP_URL`                      | Yes         | API/Share        | Public app URL used in share links            | `http://localhost:4300`                                 |
+| `JWT_SECRET`                   | Yes         | API/Auth/Whisper | JWT signature secret                          | `change_me`                                             |
+| `JWT_ACCESS_EXPIRES_IN`        | No          | API/Auth         | Access token TTL                              | `15m`                                                   |
+| `JWT_REFRESH_REMEMBER_ME_DAYS` | No          | API/Auth         | Refresh token TTL when remember-me is enabled | `30`                                                    |
+| `JWT_REFRESH_SESSION_HOURS`    | No          | API/Auth         | Refresh token TTL for session mode            | `24`                                                    |
+| `RESET_PASSWORD_TOKEN_MINUTES` | No          | API/Auth         | Password reset token validity window          | `20`                                                    |
+| `OPENAI_API_KEY`               | Yes         | API/Whisper      | OpenAI API key for transcription              | `sk-...`                                                |
+| `BREVO_API_KEY`                | Optional    | API/Share        | Brevo transactional email API key             | `xkeysib-...`                                           |
+| `TWILIO_ACCOUNT_SID`           | Optional    | API/Share        | Twilio account SID                            | `AC...`                                                 |
+| `TWILIO_AUTH_TOKEN`            | Optional    | API/Share        | Twilio auth token                             | `...`                                                   |
+| `TWILIO_WHATSAPP_NUMBER`       | Optional    | API/Share        | Twilio sender number for WhatsApp             | `whatsapp:+14155238886`                                 |
+| `DISCORD_WEBHOOK_URL`          | Optional    | API/Discord      | Discord webhook endpoint                      | `https://discord.com/api/webhooks/...`                  |
+| `S3_UPLOAD_BASE_URL`           | Optional    | API/Profile      | Upload endpoint for S3-compatible gateway     | `https://storage.example.com/upload`                    |
+| `S3_PUBLIC_BASE_URL`           | Optional    | API/Profile      | Public base URL for uploaded files            | `https://cdn.example.com`                               |
+| `S3_UPLOAD_TOKEN`              | Optional    | API/Profile      | Bearer token used for upload gateway auth     | `token_value`                                           |
+| `SEED_ADMIN_EMAIL`             | Optional    | Prisma seed      | Admin bootstrap email                         | `admin@blablanote.com`                                  |
+| `SEED_ADMIN_PASSWORD`          | Optional    | Prisma seed      | Admin bootstrap password                      | `ChangeThisPassword!123`                                |
+| `VITE_API_BASE_URL`            | Yes         | Frontend         | API base URL used by frontend HTTP client     | `http://localhost:3000`                                 |
+| `BASE_URL`                     | No          | Frontend E2E     | Frontend URL for Playwright tests             | `http://localhost:4300`                                 |
+| `CI`                           | No          | Frontend E2E     | Playwright CI mode toggle                     | `true`                                                  |
+| `NODE_ENV`                     | No          | API              | Runtime environment mode                      | `development`                                           |
 
-### 4) Generate Prisma client
+## Run Locally
 
-```bash
-yarn prisma:generate
-```
-
-### 5) Run database migrations
-
-```bash
-yarn prisma:migrate
-```
-
-### 6) (Optional) Seed admin user
-
-```bash
-npx prisma db seed
-```
-
----
-
-## Prisma Migration Commands
-
-```bash
-# Sync schema to root prisma folder + generate client
-yarn prisma:generate
-
-# Create/apply dev migration
-yarn prisma:migrate
-
-# Deploy migrations in production
-npx prisma migrate deploy
-
-# Open Prisma Studio
-npx prisma studio
-```
-
----
-
-## Running Locally
-
-### Backend (API)
+### API
 
 ```bash
 yarn nx serve api
 ```
 
-API default URL: `http://localhost:3001`
-
-### Frontend (Web App)
+### Frontend
 
 ```bash
 yarn nx serve front
 ```
 
-Frontend default URL (Nx/Vite): typically `http://localhost:4200`
-
-### Run both (two terminals)
-- Terminal A: `yarn nx serve api`
-- Terminal B: `yarn nx serve front`
-
----
-
-## Running in Production
-
-### 1) Build all applications
+## Prisma Commands
 
 ```bash
-yarn build
+yarn prisma:generate
+yarn prisma:migrate
+yarn prisma:migrate:test
+yarn prisma db seed
 ```
 
-### 2) Apply migrations
+## Swagger
 
-```bash
-npx prisma migrate deploy
-```
-
-### 3) Start API in production mode
-
-```bash
-yarn nx serve api --configuration=production
-```
-
-> For hardened production deployment, run built output with a process manager (PM2/systemd), configure HTTPS/TLS at reverse proxy level, and use managed PostgreSQL + secret manager.
-
----
-
-## Swagger Documentation
-
-When API is running:
-
-- Swagger UI: `http://localhost:3001/api/docs`
-
-Use Swagger Authorize button with:
+When API is running locally, open:
 
 ```text
-Bearer <access_token>
+http://localhost:3000/api
 ```
 
----
+## Auth Flow
 
-## API Authentication (Access + Refresh)
+1. `POST /auth/login` returns an access token and sets an HTTP-only refresh cookie.
+2. Access token is sent as `Authorization: Bearer <token>` for protected endpoints.
+3. On expiry, client calls `POST /auth/refresh` with refresh cookie.
+4. Server validates refresh token hash, session state, and expiration.
+5. Server rotates refresh token, revokes old token, sets new cookie, returns new access token.
+6. Client retries original request with new access token.
 
-### Login
-1. `POST /auth/login` with email/password (+ optional `rememberMe`)
-2. API returns `access_token` in JSON
-3. API sets refresh token as **HttpOnly cookie** (`/auth` scoped)
+## Storage (S3-Compatible)
 
-### Authenticated requests
-- Frontend sends `Authorization: Bearer <access_token>`
-- On `401`, frontend calls `POST /auth/refresh` automatically
-- If refresh succeeds, original request is retried
+- Audio and avatar binary payloads are stored via an S3-compatible upload gateway.
+- API uses `S3_UPLOAD_BASE_URL` + `S3_UPLOAD_TOKEN` for uploads.
+- Public URLs are resolved using `S3_PUBLIC_BASE_URL`.
 
-### Logout
-- `POST /auth/logout` revokes refresh token
-- Refresh cookie is cleared
-
----
-
-## Testing Instructions
+## Testing Commands
 
 ```bash
-# Unit/integration tests (if configured)
-yarn nx test api
-yarn nx test front
-
-# E2E projects
-yarn nx test api-e2e
-yarn nx test front-e2e
-
-# Lint
-yarn nx lint api
-yarn nx lint front
+yarn test:api
+yarn test:api:e2e
+yarn test:web
+yarn test:web:e2e
+yarn test:all
 ```
 
-If some targets are not defined yet in your local Nx setup, run:
+## Troubleshooting
 
-```bash
-yarn nx show project <project-name>
-```
-
----
-
-## Common Errors & Troubleshooting
-
-### 1) `P1001: Can't reach database server`
-- Ensure PostgreSQL is running
-- Verify `DATABASE_URL`
-- If Dockerized DB: `docker compose ps`
-
-### 2) `Missing Discord Webhook URL`
-- Set `DISCORD_WEBHOOK_URL`
-- Or disable webhook calls in flows where not required
-
-### 3) `401 Unauthorized` loops
-- Ensure frontend sends cookies (`withCredentials: true`)
-- Verify `FRONTEND_URL` and CORS config
-- Check `JWT_SECRET` consistency across environments
-
-### 4) Whisper/OpenAI errors
-- Validate `OPENAI_API_KEY`
-- Ensure uploaded extension is supported (`.mp3`, `.wav`, `.m4a`, etc.)
-- Check outbound network access to OpenAI API
-
-### 5) Sharing failures (Email/WhatsApp)
-- Validate Brevo/Twilio credentials
-- Confirm sender identities are approved in providers
-
-### 6) Public links open wrong host
-- Set `APP_URL` to correct public backend URL
-
----
-
-## Future Improvements
-
-- Async queue (BullMQ/RabbitMQ/SQS) for transcription pipeline
-- S3-compatible object storage adapter for uploaded audio + attachments
-- Replace in-memory access token handling with secure persistence strategy
-- Centralized observability stack (OpenTelemetry + Prometheus + Grafana)
-- Rate limiting and abuse protection hardening by route category
-- API versioning policy (`/v1`)
-- Multi-language summarization options per user preferences
-- CI quality gates (coverage thresholds, security scans, migration checks)
-- Blue/green or canary deployment strategy
-
----
-
-## License
-
-MIT
+- `PrismaClientInitializationError`: verify `DATABASE_URL`, DB availability, and migration state.
+- `401 Unauthorized` after refresh: clear browser cookies and re-authenticate to reset token chain.
+- CORS issues in local development: align `FRONTEND_URL`, `VITE_API_BASE_URL`, and API `PORT`.
+- Transcription failures: validate `OPENAI_API_KEY`, request limits, and network egress.
+- WhatsApp/email share not delivered: verify Brevo/Twilio credentials and sender configuration.
+- Avatar upload failures: verify storage gateway URL, token, and returned public URL mapping.
