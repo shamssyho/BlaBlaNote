@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { notesApi } from '../../api/notes.api';
 import { ApiError } from '../../types/api.types';
 
@@ -7,6 +8,7 @@ interface CreateNoteFormProps {
 }
 
 export function CreateNoteForm({ onCreated }: CreateNoteFormProps) {
+  const { t } = useTranslation('notes');
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +17,7 @@ export function CreateNoteForm({ onCreated }: CreateNoteFormProps) {
     event.preventDefault();
 
     if (!file) {
-      setError('Please choose an audio file.');
+      setError(t('create.chooseFileError'));
       return;
     }
 
@@ -35,7 +37,7 @@ export function CreateNoteForm({ onCreated }: CreateNoteFormProps) {
 
   return (
     <form onSubmit={onSubmit} className="panel-form">
-      <h3>New voice note</h3>
+      <h3>{t('create.title')}</h3>
       <input
         type="file"
         accept="audio/*"
@@ -44,7 +46,7 @@ export function CreateNoteForm({ onCreated }: CreateNoteFormProps) {
       />
       {error ? <p className="error-text">{error}</p> : null}
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Transcribing...' : 'Upload and transcribe'}
+        {isSubmitting ? t('create.submitting') : t('create.submit')}
       </button>
     </form>
   );

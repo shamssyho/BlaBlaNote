@@ -1,0 +1,26 @@
+{
+  "list": {
+    "title": "Notes",
+    "loading": "Loading notes...",
+    "empty": "No notes available yet.",
+    "summaryPending": "Summary pending..."
+  },
+  "create": {
+    "title": "New voice note",
+    "chooseFileError": "Please choose an audio file.",
+    "submit": "Upload and transcribe",
+    "submitting": "Transcribing..."
+  },
+  "detail": {
+    "title": "Note detail",
+    "created": "Created:",
+    "transcription": "Transcription",
+    "summary": "Summary",
+    "translation": "Translation",
+    "summaryProcessing": "Summary is still processing.",
+    "translationProcessing": "Translation is still processing.",
+    "delete": "Delete note",
+    "notFound": "Note not found.",
+    "loading": "Loading note..."
+  }
+}

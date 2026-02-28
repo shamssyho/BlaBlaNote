@@ -1,0 +1,15 @@
+{
+  "title": "Blog",
+  "description": "Insights, product updates, and writing workflows.",
+  "search": "Search posts",
+  "allCategories": "All categories",
+  "readMore": "Read more",
+  "empty": "No blog posts found.",
+  "page": "Page {{page}} of {{totalPages}}",
+  "refresh": "Refresh route",
+  "loading": "Loading...",
+  "loadError": "Failed to load blog posts",
+  "loadPostError": "Failed to load post",
+  "postNotFound": "Post not found.",
+  "backToBlog": "Back to blog"
+}

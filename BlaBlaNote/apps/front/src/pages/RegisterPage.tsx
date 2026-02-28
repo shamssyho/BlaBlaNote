@@ -1,9 +1,11 @@
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from '../router/router';
 import { useAuth } from '../hooks/useAuth';
 import { ApiError } from '../types/api.types';
 
 export function RegisterPage() {
+  const { t } = useTranslation('auth');
   const { register } = useAuth();
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
@@ -39,15 +41,15 @@ export function RegisterPage() {
   return (
     <section className="auth-page">
       <form onSubmit={onSubmit} className="auth-form">
-        <h1>Register</h1>
-        <input value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="First name" required />
-        <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Last name" required />
-        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" required />
+        <h1>{t('register.title')}</h1>
+        <input value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder={t('register.firstName')} required />
+        <input value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder={t('register.lastName')} required />
+        <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t('register.email')} required />
         <input
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="Password"
+          placeholder={t('register.password')}
           required
         />
         <label>
@@ -57,14 +59,14 @@ export function RegisterPage() {
             onChange={(event) => setTermsAccepted(event.target.checked)}
             required
           />{' '}
-          I accept the <Link to="/terms">Terms & Conditions</Link>
+          {t('register.acceptTerms', { terms: t('register.terms') })} <Link to="/terms">{t('register.terms')}</Link>
         </label>
         {error ? <p className="error-text">{error}</p> : null}
         <button type="submit" disabled={isSubmitting || !termsAccepted}>
-          {isSubmitting ? 'Creating account...' : 'Create account'}
+          {isSubmitting ? t('register.submitting') : t('register.submit')}
         </button>
         <p>
-          Already registered? <Link to="/login">Sign in</Link>
+          {t('register.alreadyRegistered')} <Link to="/login">{t('register.signIn')}</Link>
         </p>
       </form>
     </section>

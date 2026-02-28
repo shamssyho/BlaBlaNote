@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { notesApi } from '../api/notes.api';
 import { Loader } from '../components/ui/Loader';
 import { ShareNoteForm } from '../modules/notes/ShareNoteForm';
@@ -11,6 +12,7 @@ interface NoteDetailPageProps {
 }
 
 export function NoteDetailPage({ noteId }: NoteDetailPageProps) {
+  const { t } = useTranslation('notes');
   const navigate = useNavigate();
   const [note, setNote] = useState<Note | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +30,7 @@ export function NoteDetailPage({ noteId }: NoteDetailPageProps) {
       }
     }
 
-    loadNote();
+    void loadNote();
   }, [noteId]);
 
   async function onDelete() {
@@ -37,34 +39,34 @@ export function NoteDetailPage({ noteId }: NoteDetailPageProps) {
   }
 
   if (isLoading) {
-    return <Loader label="Loading note..." />;
+    return <Loader label={t('detail.loading')} />;
   }
 
   if (error || !note) {
-    return <p className="error-text">{error ?? 'Note not found.'}</p>;
+    return <p className="error-text">{error ?? t('detail.notFound')}</p>;
   }
 
   return (
     <section className="note-detail">
-      <h1>Note detail</h1>
+      <h1>{t('detail.title')}</h1>
       <p>
-        <strong>Created:</strong> {new Date(note.createdAt).toLocaleString()}
+        <strong>{t('detail.created')}</strong> {new Date(note.createdAt).toLocaleString()}
       </p>
       <article>
-        <h2>Transcription</h2>
+        <h2>{t('detail.transcription')}</h2>
         <p>{note.text}</p>
       </article>
       <article>
-        <h2>Summary</h2>
-        <p>{note.summary ?? 'Summary is still processing.'}</p>
+        <h2>{t('detail.summary')}</h2>
+        <p>{note.summary ?? t('detail.summaryProcessing')}</p>
       </article>
       <article>
-        <h2>Translation</h2>
-        <p>{note.translation ?? 'Translation is still processing.'}</p>
+        <h2>{t('detail.translation')}</h2>
+        <p>{note.translation ?? t('detail.translationProcessing')}</p>
       </article>
       <ShareNoteForm noteId={note.id} />
       <button type="button" className="danger-button" onClick={onDelete}>
-        Delete note
+        {t('detail.delete')}
       </button>
     </section>
   );

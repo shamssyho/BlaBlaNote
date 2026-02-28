@@ -1,0 +1,15 @@
+{
+  "title": "Share note",
+  "recipient": "Recipient",
+  "method": {
+    "email": "Email",
+    "whatsapp": "WhatsApp"
+  },
+  "type": {
+    "summary": "Summary",
+    "translation": "Translation"
+  },
+  "shared": "Note shared successfully.",
+  "submit": "Share",
+  "submitting": "Sharing..."
+}

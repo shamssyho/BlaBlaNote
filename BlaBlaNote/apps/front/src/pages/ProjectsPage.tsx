@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { projectsApi } from '../api/projects.api';
 import { Loader } from '../components/ui/Loader';
 import { useProjects } from '../hooks/useProjects';
@@ -6,6 +7,7 @@ import { useNavigate } from '../router/router';
 import { ApiError } from '../types/api.types';
 
 export function ProjectsPage() {
+  const { t } = useTranslation(['projects', 'common']);
   const { projects, isLoading, error, refetch } = useProjects();
   const navigate = useNavigate();
   const [newName, setNewName] = useState('');
@@ -27,7 +29,7 @@ export function ProjectsPage() {
   }
 
   async function onDelete(projectId: string) {
-    if (!window.confirm('Delete this project? Notes will stay but be unassigned.')) {
+    if (!window.confirm(t('projects:deleteConfirm'))) {
       return;
     }
 
@@ -63,7 +65,7 @@ export function ProjectsPage() {
   return (
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Projects</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('projects:title')}</h1>
       </header>
 
       <form className="flex gap-2" onSubmit={onCreate}>
@@ -71,18 +73,18 @@ export function ProjectsPage() {
           className="w-full rounded-lg border border-slate-300 px-3 py-2"
           value={newName}
           onChange={(event) => setNewName(event.target.value)}
-          placeholder="Create Project"
+          placeholder={t('projects:createPlaceholder')}
           required
         />
-        <button className="rounded-lg bg-slate-900 px-4 py-2 text-white">Create</button>
+        <button className="rounded-lg bg-slate-900 px-4 py-2 text-white">{t('projects:create')}</button>
       </form>
 
-      {isLoading ? <Loader label="Loading projects..." /> : null}
+      {isLoading ? <Loader label={t('projects:loading')} /> : null}
       {error ? <p className="error-text">{error}</p> : null}
       {actionError ? <p className="error-text">{actionError}</p> : null}
 
       {!isLoading && projects.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">No projects yet.</p>
+        <p className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">{t('projects:empty')}</p>
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -97,20 +99,20 @@ export function ProjectsPage() {
                   required
                 />
                 <div className="flex gap-2">
-                  <button className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white">Save</button>
+                  <button className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white">{t('common:actions.save')}</button>
                   <button type="button" className="rounded-md border border-slate-300 px-3 py-1.5 text-sm" onClick={() => setEditingId(null)}>
-                    Cancel
+                    {t('common:actions.cancel')}
                   </button>
                 </div>
               </form>
             ) : (
               <>
                 <h3 className="text-lg font-semibold">{project.name}</h3>
-                <p className="text-sm text-slate-600">{project.notesCount} notes</p>
-                <p className="text-xs text-slate-500">Created {new Date(project.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm text-slate-600">{t('projects:notesCount', { count: project.notesCount })}</p>
+                <p className="text-xs text-slate-500">{t('projects:createdAt', { date: new Date(project.createdAt).toLocaleDateString() })}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button className="rounded-md bg-slate-900 px-3 py-1.5 text-sm text-white" onClick={() => navigate(`/projects/${project.id}`)}>
-                    Open
+                    {t('common:actions.open')}
                   </button>
                   <button
                     className="rounded-md border border-slate-300 px-3 py-1.5 text-sm"
@@ -119,10 +121,10 @@ export function ProjectsPage() {
                       setEditingName(project.name);
                     }}
                   >
-                    Edit
+                    {t('common:actions.edit')}
                   </button>
                   <button className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-700" onClick={() => onDelete(project.id)}>
-                    Delete
+                    {t('common:actions.delete')}
                   </button>
                 </div>
               </>

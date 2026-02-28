@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { notesApi } from '../../api/notes.api';
 import { ApiError } from '../../types/api.types';
 import { ShareNotePayload } from '../../types/notes.types';
@@ -14,6 +15,7 @@ const defaultPayload: ShareNotePayload = {
 };
 
 export function ShareNoteForm({ noteId }: ShareNoteFormProps) {
+  const { t } = useTranslation('share');
   const [payload, setPayload] = useState<ShareNotePayload>(defaultPayload);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export function ShareNoteForm({ noteId }: ShareNoteFormProps) {
 
     try {
       await notesApi.share(noteId, payload);
-      setSuccess('Note shared successfully.');
+      setSuccess(t('shared'));
       setPayload(defaultPayload);
     } catch (err) {
       setError((err as ApiError).message);
@@ -38,19 +40,19 @@ export function ShareNoteForm({ noteId }: ShareNoteFormProps) {
 
   return (
     <form className="panel-form" onSubmit={onSubmit}>
-      <h3>Share note</h3>
+      <h3>{t('title')}</h3>
       <select
         value={payload.method}
         onChange={(event) =>
           setPayload((previous) => ({ ...previous, method: event.target.value as ShareNotePayload['method'] }))
         }
       >
-        <option value="email">Email</option>
-        <option value="whatsapp">WhatsApp</option>
+        <option value="email">{t('method.email')}</option>
+        <option value="whatsapp">{t('method.whatsapp')}</option>
       </select>
       <input
         value={payload.to}
-        placeholder="Recipient"
+        placeholder={t('recipient')}
         onChange={(event) => setPayload((previous) => ({ ...previous, to: event.target.value }))}
         required
       />
@@ -60,13 +62,13 @@ export function ShareNoteForm({ noteId }: ShareNoteFormProps) {
           setPayload((previous) => ({ ...previous, type: event.target.value as ShareNotePayload['type'] }))
         }
       >
-        <option value="summary">Summary</option>
-        <option value="translation">Translation</option>
+        <option value="summary">{t('type.summary')}</option>
+        <option value="translation">{t('type.translation')}</option>
       </select>
       {error ? <p className="error-text">{error}</p> : null}
       {success ? <p className="success-text">{success}</p> : null}
       <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Sharing...' : 'Share'}
+        {isSubmitting ? t('submitting') : t('submit')}
       </button>
     </form>
   );

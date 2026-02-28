@@ -1,0 +1,10 @@
+{
+  "title": "Projects",
+  "createPlaceholder": "Create project",
+  "create": "Create",
+  "loading": "Loading projects...",
+  "empty": "No projects yet.",
+  "deleteConfirm": "Delete this project? Notes will stay but be unassigned.",
+  "notesCount": "{{count}} notes",
+  "createdAt": "Created {{date}}"
+}

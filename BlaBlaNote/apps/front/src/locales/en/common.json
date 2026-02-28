@@ -1,0 +1,35 @@
+{
+  "app": {
+    "name": "BlaBlaNote"
+  },
+  "nav": {
+    "home": "Home",
+    "notes": "Notes",
+    "createNote": "Create note",
+    "projects": "Projects",
+    "shared": "Shared",
+    "sharedComingSoon": "Shared (coming soon)",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "toggleNavigation": "Toggle navigation menu",
+    "openUserMenu": "Open user menu",
+    "language": "Language",
+    "sharedUnavailable": "Shared notes route not available yet",
+    "mobilePrimaryNavigation": "Mobile primary navigation",
+    "primaryNavigation": "Primary navigation"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "open": "Open",
+    "apply": "Apply",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "states": {
+    "loading": "Loading..."
+  }
+}

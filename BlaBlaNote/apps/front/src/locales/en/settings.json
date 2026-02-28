@@ -1,0 +1,18 @@
+{
+  "title": "Settings",
+  "loading": "Loading settings...",
+  "saved": "Settings saved successfully.",
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "notifications": "Enable notifications",
+  "save": "Save settings",
+  "saving": "Saving..."
+}
