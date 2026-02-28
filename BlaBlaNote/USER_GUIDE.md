@@ -1,203 +1,158 @@
 # USER_GUIDE.md
 
-Welcome to **BlaBlaNote** 👋
-
-This guide helps you use the app step by step, even if you are not technical.
+Welcome to BlaBlaNote. This guide shows how to use the app in simple steps.
 
 ---
 
-## 1. Create an Account (Register)
+## 1. Sign in
 
-1. Open the BlaBlaNote web app.
-2. Click **Register**.
-3. Fill in:
-   - First name
-   - Last name
-   - Email
-   - Password
-4. Submit the form.
-5. You are redirected to your workspace after successful registration/login.
-
-Tip: Use a strong password with letters, numbers, and symbols.
-
----
-
-## 2. Log In
-
-1. Open the **Login** page.
+1. Open the BlaBlaNote app.
 2. Enter your email and password.
-3. (Optional) enable **Remember me**.
-4. Click **Login**.
+3. Click **Login**.
 
-If login is successful, you access your dashboard and notes.
-
----
-
-## 3. Upload a Voice Note
-
-1. Go to your notes page.
-2. Click **Upload** (or equivalent upload action).
-3. Select an audio file from your device.
-4. Confirm upload.
-
-Supported audio formats include common formats such as MP3, WAV, M4A, OGG, WEBM, MP4.
+If you forgot your password, use **Forgot password** and follow the email instructions.
 
 ---
 
-## 4. How Transcription Works
+## 2. Create a note
 
-After upload, your note follows these steps:
+1. Go to your notes area.
+2. Create/upload a new note.
+3. Wait while BlaBlaNote processes the audio.
 
-1. **Uploaded**
-2. **Transcribing** (speech converted to text)
-3. **Summarizing** (AI creates short summary)
-4. **Ready** (you can read transcript + summary)
-
-If something fails, status becomes **Failed** and you can retry.
+You can also organize notes by project and tags.
 
 ---
 
-## 5. How Summarization Works
+## 3. Understand transcription statuses
 
-- Once transcription is complete, AI reads your transcript.
-- It generates a concise summary.
-- In some flows, translation may also be available.
-- Final result is saved in your note.
+Each note shows a status:
 
----
-
-## 6. Organize Your Notes
-
-## 6.1 Using Projects
-- Create projects to group notes by theme (e.g., “Client A”, “Ideas”, “Meetings”).
-- Assign each note to a project.
-- Reassign anytime.
-
-## 6.2 Using Tags
-- Create tags (e.g., `urgent`, `marketing`, `podcast`).
-- Add one or several tags per note.
-- Use tags to filter notes quickly.
+- **UPLOADED**: your audio was received.
+- **TRANSCRIBING**: the system is converting audio to text.
+- **SUMMARIZING**: the system is generating summary/translation.
+- **READY**: your note is complete.
+- **FAILED**: processing failed. You can retry.
 
 ---
 
-## 7. Search and Filters
+## 4. Edit your profile
 
-You can find notes faster by combining:
-- Keyword search (text, transcript, summary)
-- Project filter
-- Tag filter
-- Date range filter
+1. Open **Profile**.
+2. Update your first name and last name.
+3. Save changes.
 
-Tip: Start with keyword + project, then add tags/date for precise results.
+You can also see your email and account details there.
 
 ---
 
-## 8. Share Notes
+## 5. Upload an avatar
 
-## 8.1 Share by Email
+1. Open **Profile**.
+2. Click avatar upload.
+3. Select an image file.
+4. Save.
+
+Tip: use a clear image and standard image format (JPG/PNG).
+
+---
+
+## 6. Change your password
+
+1. Open **Profile** or **Security settings**.
+2. Enter your current password.
+3. Enter and confirm your new password.
+4. Save.
+
+Use a strong password with letters, numbers, and symbols.
+
+---
+
+## 7. Change language and theme
+
+1. Open **Settings**.
+2. Choose your preferred **Language**.
+3. Choose your preferred **Theme** (for example light/dark).
+4. Set notification preference on/off.
+5. Save.
+
+Your preferences are saved to your account.
+
+---
+
+## 8. Share a note with public link
+
 1. Open a note.
-2. Choose **Share** → **Email**.
-3. Enter recipient email.
-4. Choose content type (summary/full content depending on screen options).
-5. Send.
+2. Click **Share** and create a public link.
+3. Choose expiration and visibility options.
+4. Copy and send the link.
 
-## 8.2 Share by WhatsApp
-1. Open a note.
-2. Choose **Share** → **WhatsApp**.
-3. Enter recipient WhatsApp number (international format recommended).
-4. Send.
-
-Note: Delivery depends on platform configuration and messaging provider status.
+Important:
+- Anyone with the link can open it until it expires.
+- You can revoke a link at any time.
 
 ---
 
-## 9. Use Public Share Links
+## 9. Search and filter notes
 
-1. Open the note you want to share.
-2. Create a **Public Link**.
-3. Set:
-   - Expiration time
-   - What recipients can see (summary/transcript)
-4. Copy the generated URL and send it.
+Use search and filters to find notes quickly:
+- Search text.
+- Filter by date range.
+- Filter by project.
+- Filter by tags.
 
-You can revoke links later if needed.
-
----
-
-## 10. Manage Your Profile
-
-- Your account identity is attached to your notes and shares.
-- Depending on available UI options, you can view/export personal account data.
-- Keep your email updated and secure.
+Pagination helps you browse large note lists.
 
 ---
 
-## 11. Delete Your Account
+## 10. Export or delete your account
 
-If you want to close your account:
+### Export data
+- Go to account/profile area.
+- Use **Export my data**.
 
-1. Open account settings/profile section.
-2. Select **Delete account**.
-3. Confirm the action.
+### Delete account
+- Go to account/profile area.
+- Choose **Delete account**.
+- Confirm action.
 
-Important: This action is irreversible and removes access to your data according to platform policy.
-
----
-
-## 12. FAQ
-
-### Q1: Why is my note still “Transcribing”?
-AI processing may take longer for big files or high traffic.
-
-### Q2: Why did my note fail?
-Common reasons:
-- Unsupported/corrupted audio file
-- Temporary AI provider issue
-- Network problem
-Use **Retry** after checking the file.
-
-### Q3: Can I edit the transcript?
-If edit UI is enabled in your version, yes. Otherwise transcript is read-only.
-
-### Q4: Can anyone open my public link?
-Anyone with the link can open it **until it expires** (unless revoked).
-
-### Q5: Is my password stored safely?
-Passwords are hashed and not stored in plain text.
-
-### Q6: Why am I asked to login again?
-Your access token may have expired. The app usually refreshes session automatically; if not, login again.
+This action is permanent.
 
 ---
 
-## 13. Troubleshooting
+## 11. Troubleshooting
 
-## Problem: “Unauthorized” message appears often
-- Log out and log in again
-- Clear browser cache/cookies
-- Ensure your session has not expired
+### I keep getting logged out
+- Log in again.
+- Clear browser cookies/cache.
+- Make sure your browser accepts cookies.
 
-## Problem: Upload button does nothing
-- Check internet connection
-- Verify file type and size
-- Try another browser
+### My note is stuck in processing
+- Wait a little longer for large files.
+- Refresh the page.
+- If status is **FAILED**, use retry.
 
-## Problem: Share email/WhatsApp not received
-- Verify recipient details
-- Wait a few minutes for provider delay
-- Ask support/admin to check provider configuration
+### My share link does not open
+- Check if the link expired.
+- Ask the sender for a new link.
+- Confirm the link was not revoked.
 
-## Problem: Public link not working
-- Link may be expired
-- Link may have been revoked
-- Ask sender to generate a new one
+### Avatar upload fails
+- Use an image file (not audio/document).
+- Try a smaller file.
+- Refresh and try again.
+
+### I did not receive password reset email
+- Check spam/junk folder.
+- Verify your email address.
+- Retry after a few minutes.
 
 ---
 
-## Need Help?
+## 12. Need help
 
-If issues continue, contact BlaBlaNote support and include:
-- Your email
-- Approximate time of the issue
-- Note ID (if visible)
-- Screenshot of error message
+If you still have issues, contact support and include:
+- Your account email
+- Approximate time of issue
+- What action you were trying to do
+- Screenshot or exact error message
