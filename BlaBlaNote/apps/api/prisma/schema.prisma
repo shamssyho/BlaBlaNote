@@ -29,12 +29,17 @@ model Note {
 }
 
 model User {
-  id            String         @id @default(uuid())
+  id            String         @id @default(cuid())
   firstName     String
   lastName      String
   email         String         @unique
   password      String
-  role          Role           @default(USER)
+  role          String         @default("USER")
+  isBlocked     Boolean        @default(false)
+  avatarUrl     String?
+  language      String         @default("en")
+  theme         String         @default("light")
+  notificationsEnabled Boolean @default(true)
   status        UserStatus     @default(PENDING)
   termsAcceptedAt DateTime?
   termsVersion   String?
@@ -54,6 +59,10 @@ model User {
   refreshTokens RefreshToken[]
   passwordResetTokens PasswordResetToken[]
   createdShareLinks ShareLink[] @relation("ShareLinkCreator")
+
+  @@index([role])
+  @@index([isBlocked])
+  @@index([createdAt])
 }
 
 model ShareLink {
@@ -172,11 +181,6 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([expiresAt])
-}
-
-enum Role {
-  USER
-  ADMIN
 }
 
 enum UserStatus {

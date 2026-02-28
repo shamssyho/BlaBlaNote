@@ -11,6 +11,7 @@ import { AdminModule } from './admin/admin.module';
 import { ProjectModule } from './project/project.module';
 import { BlogModule } from './blog/blog.module';
 import { TagModule } from './tag/tag.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TagModule } from './tag/tag.module';
     ProjectModule,
     BlogModule,
     TagModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
