@@ -8,7 +8,16 @@
     "start": "nx serve api",
     "prisma:sync": "cp apps/api/prisma/schema.prisma prisma/schema.prisma",
     "prisma:generate": "yarn prisma:sync && npx prisma generate",
-    "prisma:migrate": "yarn prisma:sync && npx prisma migrate dev"
+    "prisma:migrate": "yarn prisma:sync && npx prisma migrate dev",
+    "test:api": "NX_NO_CLOUD=true nx test api",
+    "test:api:watch": "NX_NO_CLOUD=true nx test api --watch",
+    "test:api:e2e": "NX_NO_CLOUD=true nx run api-e2e:e2e",
+    "test:api:e2e:ci": "NX_NO_CLOUD=true yarn prisma:migrate:test && nx run api-e2e:e2e",
+    "prisma:migrate:test": "DATABASE_URL=${DATABASE_URL_TEST:-$DATABASE_URL} yarn prisma:sync && npx prisma migrate deploy --schema apps/api/prisma/schema.prisma",
+    "test:web": "NX_NO_CLOUD=true nx test front",
+    "test:web:watch": "NX_NO_CLOUD=true nx test front --watch",
+    "test:web:e2e": "NX_NO_CLOUD=true nx e2e front-e2e",
+    "test:all": "NX_NO_CLOUD=true yarn test:api && yarn test:api:e2e && yarn test:web && yarn test:web:e2e"
   },
   "private": true,
   "dependencies": {
