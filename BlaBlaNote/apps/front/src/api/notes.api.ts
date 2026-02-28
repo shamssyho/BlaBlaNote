@@ -3,23 +3,20 @@ import { Note, ShareNotePayload } from '../types/notes.types';
 
 type NotesListResponse = {
   items: Note[];
-  page: number;
-  pageSize: number;
-  total: number;
 };
 
 function extractNotes(data: unknown): Note[] {
   if (Array.isArray(data)) return data as Note[];
-  if (data && typeof data === 'object' && Array.isArray((data as any).items))
-    return (data as any).items as Note[];
+  if (data && typeof data === 'object' && Array.isArray((data as NotesListResponse).items)) {
+    return (data as NotesListResponse).items;
+  }
   return [];
 }
 
 export const notesApi = {
-  getAll() {
-    return http
-      .get<Note[] | NotesListResponse>('/notes')
-      .then((res) => extractNotes(res.data));
+  getAll(tagIds?: string[]) {
+    const query = tagIds?.length ? `?tagIds=${tagIds.join(',')}` : '';
+    return http.get<Note[] | NotesListResponse>(`/notes${query}`).then((res) => extractNotes(res.data));
   },
   getById(id: string) {
     return http.get<Note>(`/notes/${id}`).then((res) => res.data);
@@ -30,22 +27,24 @@ export const notesApi = {
   createAudioNote(file: File) {
     const formData = new FormData();
     formData.append('file', file);
-
-    return http
-      .post('/whisper/transcribe', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      .then((res) => res.data);
-  },
-  delete(id: string) {
-    return http.delete(`/notes/${id}`).then((res) => res.data);
+    return http.post('/whisper/transcribe', formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then((res) => res.data);
   },
   updateProject(id: string, projectId: string | null) {
-    return http
-      .patch<Note>(`/notes/${id}/project`, { projectId })
-      .then((res) => res.data);
+    return http.patch<Note>(`/notes/${id}/project`, { projectId }).then((res) => res.data);
+  },
+  updateTags(id: string, tagIds: string[]) {
+    return http.put<Note>(`/notes/${id}/tags`, { tagIds }).then((res) => res.data);
+  },
+  summarize(id: string) {
+    return http.post<Note>(`/notes/${id}/summarize`).then((res) => res.data);
+  },
+  translate(id: string) {
+    return http.post<Note>(`/notes/${id}/translate`).then((res) => res.data);
   },
   share(id: string, payload: ShareNotePayload) {
     return http.post(`/notes/${id}/share`, payload).then((res) => res.data);
+  },
+  delete(id: string) {
+    return http.delete(`/notes/${id}`).then((res) => res.data);
   },
 };

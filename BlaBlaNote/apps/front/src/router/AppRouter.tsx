@@ -24,6 +24,7 @@ import { AdminBlogPage } from '../pages/admin/AdminBlogPage';
 import { AdminBlogCategoriesPage } from '../pages/admin/AdminBlogCategoriesPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { TagsPage } from '../pages/TagsPage';
 
 function renderAdminPage(path: string) {
   if (path === '/admin') {
@@ -138,6 +139,16 @@ function RoutedApp() {
     );
   }
 
+
+  if (path === '/tags') {
+    return (
+      <ProtectedRoute redirectTo="/login">
+        <AppLayout>
+          <TagsPage />
+        </AppLayout>
+      </ProtectedRoute>
+    );
+  }
   if (path === '/profile') {
     return (
       <ProtectedRoute redirectTo="/login">

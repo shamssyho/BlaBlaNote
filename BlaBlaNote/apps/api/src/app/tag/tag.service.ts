@@ -26,6 +26,7 @@ export class TagService {
         userId,
         name: dto.name,
         slug,
+        color: dto.color ?? null,
       },
     });
   }
@@ -41,6 +42,7 @@ export class TagService {
       data: {
         name: dto.name,
         slug,
+        color: dto.color ?? null,
       },
     });
   }

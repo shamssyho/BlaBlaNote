@@ -8,57 +8,59 @@ datasource db {
 }
 
 model Note {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  text        String
+  id             String      @id @default(uuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  text           String
   transcriptText String?
-  status      NoteStatus @default(UPLOADED)
-  errorMessage String?
-  summary     String?
-  translation String?
-  audioUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  noteTags    NoteTag[]
-  shareLinks  ShareLink[]
+  status         NoteStatus  @default(UPLOADED)
+  errorMessage   String?
+  summary        String?
+  translation    String?
+  audioUrl       String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  noteTags       NoteTag[]
+  shareLinks     ShareLink[]
+  shareHistory   ShareHistory[]
 
   @@index([projectId])
 }
 
 model User {
-  id            String         @id @default(cuid())
-  firstName     String
-  lastName      String
-  email         String         @unique
-  password      String
-  role          String         @default("USER")
-  isBlocked     Boolean        @default(false)
-  avatarUrl     String?
-  language      String         @default("en")
-  theme         String         @default("light")
-  notificationsEnabled Boolean @default(true)
-  status        UserStatus     @default(PENDING)
-  termsAcceptedAt DateTime?
-  termsVersion   String?
-  lastLoginAt   DateTime?
-  suspendedAt   DateTime?
-  deletedAt     DateTime?
-  plan          String?
-  priceCents    Int?
-  currency      String?
-  billingStatus String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  notes         Note[]
-  tags          Tag[]
-  projects      Project[]
-  blogPosts     BlogPost[]
-  refreshTokens RefreshToken[]
-  passwordResetTokens PasswordResetToken[]
-  createdShareLinks ShareLink[] @relation("ShareLinkCreator")
+  id                     String               @id @default(cuid())
+  firstName              String
+  lastName               String
+  email                  String               @unique
+  password               String
+  role                   String               @default("USER")
+  isBlocked              Boolean              @default(false)
+  avatarUrl              String?
+  language               String               @default("en")
+  theme                  String               @default("light")
+  notificationsEnabled   Boolean              @default(true)
+  status                 UserStatus           @default(PENDING)
+  termsAcceptedAt        DateTime?
+  termsVersion           String?
+  lastLoginAt            DateTime?
+  suspendedAt            DateTime?
+  deletedAt              DateTime?
+  plan                   String?
+  priceCents             Int?
+  currency               String?
+  billingStatus          String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  notes                  Note[]
+  tags                   Tag[]
+  projects               Project[]
+  blogPosts              BlogPost[]
+  refreshTokens          RefreshToken[]
+  passwordResetTokens    PasswordResetToken[]
+  createdShareLinks      ShareLink[]          @relation("ShareLinkCreator")
+  shareHistory           ShareHistory[]
 
   @@index([role])
   @@index([isBlocked])
@@ -82,10 +84,28 @@ model ShareLink {
   @@index([expiresAt])
 }
 
+model ShareHistory {
+  id             String   @id @default(cuid())
+  noteId          String
+  note            Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel         ShareChannel
+  destination     String
+  contentType     ShareContentType
+  targetLanguage  String?
+  createdAt       DateTime @default(now())
+
+  @@index([noteId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
 model Tag {
   id        String    @id @default(cuid())
   name      String
   slug      String
+  color     String?
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   noteTags  NoteTag[]
@@ -140,6 +160,7 @@ model BlogPost {
 model Project {
   id        String   @id @default(cuid())
   name      String
+  color     String
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes     Note[]
@@ -150,20 +171,20 @@ model Project {
 }
 
 model RefreshToken {
-  id                String        @id @default(uuid())
+  id                String         @id @default(uuid())
   userId            String
-  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash         String        @unique
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash         String         @unique
   sessionId         String
   userAgent         String?
   ipAddress         String?
-  rememberMe        Boolean       @default(false)
+  rememberMe        Boolean        @default(false)
   replacedByTokenId String?
-  replacedByToken   RefreshToken? @relation("RefreshTokenRotation", fields: [replacedByTokenId], references: [id])
+  replacedByToken   RefreshToken?  @relation("RefreshTokenRotation", fields: [replacedByTokenId], references: [id])
   previousToken     RefreshToken[] @relation("RefreshTokenRotation")
   expiresAt         DateTime
   revokedAt         DateTime?
-  createdAt         DateTime      @default(now())
+  createdAt         DateTime       @default(now())
 
   @@index([userId])
   @@index([sessionId])
@@ -192,8 +213,21 @@ enum UserStatus {
 
 enum NoteStatus {
   UPLOADED
-  TRANSCRIBING
-  SUMMARIZING
+  PROCESSING_SUMMARY
+  PROCESSING_TRANSLATION
   READY
   FAILED
+}
+
+enum ShareChannel {
+  EMAIL
+  WHATSAPP
+  NOTION
+}
+
+enum ShareContentType {
+  SUMMARY
+  TRANSLATION
+  BOTH
+  FULL_TRANSCRIPTION
 }

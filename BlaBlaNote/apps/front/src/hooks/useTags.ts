@@ -1,28 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
-import { notesApi } from '../api/notes.api';
+import { tagsApi } from '../api/tags.api';
 import { ApiError } from '../types/api.types';
-import { Note } from '../types/notes.types';
+import { Tag } from '../types/tags.types';
 
-export function useNotes(tagIds: string[] = []) {
-  const [notes, setNotes] = useState<Note[]>([]);
+export function useTags() {
+  const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNotes = useCallback(async () => {
+  const fetchTags = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      setNotes(await notesApi.getAll(tagIds));
+      setTags(await tagsApi.getAll());
     } catch (err) {
       setError((err as ApiError).message);
     } finally {
       setIsLoading(false);
     }
-  }, [tagIds]);
+  }, []);
 
   useEffect(() => {
-    void fetchNotes();
-  }, [fetchNotes]);
+    void fetchTags();
+  }, [fetchTags]);
 
-  return { notes, isLoading, error, refetch: fetchNotes };
+  return { tags, isLoading, error, refetch: fetchTags };
 }

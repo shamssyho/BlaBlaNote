@@ -11,6 +11,7 @@ export function ProjectsPage() {
   const { projects, isLoading, error, refetch } = useProjects();
   const navigate = useNavigate();
   const [newName, setNewName] = useState('');
+  const [newColor, setNewColor] = useState('#64748B');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
@@ -20,8 +21,9 @@ export function ProjectsPage() {
     setActionError(null);
 
     try {
-      await projectsApi.create({ name: newName });
+      await projectsApi.create({ name: newName, color: newColor });
       setNewName('');
+      setNewColor('#64748B');
       await refetch();
     } catch (err) {
       setActionError((err as ApiError).message);
@@ -76,6 +78,7 @@ export function ProjectsPage() {
           placeholder={t('projects:createPlaceholder')}
           required
         />
+        <input type="color" value={newColor} onChange={(event) => setNewColor(event.target.value)} />
         <button className="rounded-lg bg-slate-900 px-4 py-2 text-white">{t('projects:create')}</button>
       </form>
 
@@ -107,7 +110,7 @@ export function ProjectsPage() {
               </form>
             ) : (
               <>
-                <h3 className="text-lg font-semibold">{project.name}</h3>
+                <h3 className="text-lg font-semibold flex items-center gap-2"><span className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />{project.name}</h3>
                 <p className="text-sm text-slate-600">{t('projects:notesCount', { count: project.notesCount })}</p>
                 <p className="text-xs text-slate-500">{t('projects:createdAt', { date: new Date(project.createdAt).toLocaleDateString() })}</p>
                 <div className="mt-3 flex flex-wrap gap-2">

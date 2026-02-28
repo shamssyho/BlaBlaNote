@@ -21,6 +21,7 @@ export class ProjectService {
     return projects.map((project) => ({
       id: project.id,
       name: project.name,
+      color: project.color,
       notesCount: project._count.notes,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
@@ -32,6 +33,7 @@ export class ProjectService {
       data: {
         userId,
         name: dto.name,
+        color: dto.color,
       },
       include: {
         _count: {
@@ -43,18 +45,19 @@ export class ProjectService {
     return {
       id: project.id,
       name: project.name,
+      color: project.color,
       notesCount: project._count.notes,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     };
   }
 
-  async renameProject(userId: string, id: string, dto: UpdateProjectDto) {
+  async updateProject(userId: string, id: string, dto: UpdateProjectDto) {
     await this.ensureProjectOwnership(id, userId);
 
     const project = await this.prisma.project.update({
       where: { id },
-      data: { name: dto.name },
+      data: { name: dto.name, color: dto.color },
       include: {
         _count: {
           select: { notes: true },
@@ -65,6 +68,7 @@ export class ProjectService {
     return {
       id: project.id,
       name: project.name,
+      color: project.color,
       notesCount: project._count.notes,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
